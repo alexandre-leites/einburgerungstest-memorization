@@ -19,6 +19,11 @@
       home: "Home",
       modes: "Modi",
       memorization: "Memorieren",
+      memorizationRandom: "Zufällige Reihenfolge",
+      memorizationOrdered: "Geordnet (nach ID)",
+      goToId: "Zu ID springen",
+      go: "Los",
+      resetToFirst: "Zur ersten Frage",
       training: "Training",
       test: "Test",
       review: "Wiederholen",
@@ -28,7 +33,16 @@
       settings: "Einstellungen",
       language: "Sprache",
       stateForTest: "Bundesland (für Test)",
-      resetLocalData: "Lokale Daten zurücksetzen",
+      resetData: "Daten zurücksetzen",
+      resetDataTitle: "Daten zurücksetzen",
+      resetDataSubtitle: "Wähle aus, was gelöscht werden soll.",
+      resetStats: "Statistiken",
+      resetSessions: "Sitzungen",
+      resetMyDictionary: "Mein Wörterbuch",
+      resetOther: "Andere lokale Einstellungen",
+      resetLanguage: "Sprache",
+      resetState: "Bundesland",
+      resetDone: "Ausgewählte Daten gelöscht.",
       back: "Zurück",
       next: "Nächste",
       timer: "Timer",
@@ -91,6 +105,11 @@
       home: "Home",
       modes: "Modes",
       memorization: "Memorization",
+      memorizationRandom: "Random order",
+      memorizationOrdered: "Ordered (by ID)",
+      goToId: "Jump to ID",
+      go: "Go",
+      resetToFirst: "Reset to first",
       training: "Training",
       test: "Test",
       review: "Review",
@@ -100,7 +119,16 @@
       settings: "Settings",
       language: "Language",
       stateForTest: "State (for test)",
-      resetLocalData: "Reset local data",
+      resetData: "Reset data",
+      resetDataTitle: "Reset data",
+      resetDataSubtitle: "Choose what you want to delete.",
+      resetStats: "Statistics",
+      resetSessions: "Sessions",
+      resetMyDictionary: "My dictionary",
+      resetOther: "Other local settings",
+      resetLanguage: "Language",
+      resetState: "State",
+      resetDone: "Selected data cleared.",
       back: "Back",
       next: "Next",
       timer: "Timer",
@@ -162,6 +190,11 @@
       home: "Home",
       modes: "Modos",
       memorization: "Memorização",
+      memorizationRandom: "Ordem aleatória",
+      memorizationOrdered: "Ordem por ID",
+      goToId: "Ir para ID",
+      go: "Ir",
+      resetToFirst: "Voltar para a primeira",
       training: "Treino",
       test: "Teste",
       review: "Revisão",
@@ -171,7 +204,16 @@
       settings: "Configurações",
       language: "Idioma",
       stateForTest: "Estado (para teste)",
-      resetLocalData: "Resetar dados locais",
+      resetData: "Resetar dados",
+      resetDataTitle: "Resetar dados",
+      resetDataSubtitle: "Selecione o que você quer deletar.",
+      resetStats: "Estatísticas",
+      resetSessions: "Sessões",
+      resetMyDictionary: "Meu dicionário",
+      resetOther: "Outras configurações locais",
+      resetLanguage: "Idioma",
+      resetState: "Estado",
+      resetDone: "Dados selecionados apagados.",
       back: "Voltar",
       next: "Próxima",
       timer: "Cronômetro",
@@ -241,6 +283,8 @@
     activeSession: null, // {mode, orderIds, index, ...}
     testTicker: null,
     currentWord: null,
+    prevRoute: null,
+    memOrderedShouldReset: false,
   };
 
   const els = {};
@@ -269,6 +313,7 @@
   }
 
   function setText(el, text) {
+    if (!el) return;
     el.textContent = text;
   }
 
@@ -468,7 +513,9 @@
 
   function setActiveNav(route) {
     document.querySelectorAll(".nav__item[data-route]").forEach((btn) => {
-      const isActive = btn.getAttribute("data-route") === route;
+      const exact = btn.getAttribute("data-route") === route;
+      const prefix = btn.getAttribute("data-route-prefix");
+      const isActive = exact || (prefix && route.startsWith(prefix));
       if (isActive) btn.setAttribute("aria-current", "page");
       else btn.removeAttribute("aria-current");
     });
@@ -515,6 +562,34 @@
 
   function getPracticeQuestionIds() {
     return getPracticeQuestions().map((q) => q._id);
+  }
+
+  function getOrderedPracticeQuestionIds() {
+    const ids = getPracticeQuestionIds();
+    const parseId = (id) => {
+      const parts = String(id).split("-");
+      const n = Number(parts[1]);
+      return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+    };
+    return [...ids].sort((a, b) => parseId(a) - parseId(b) || a.localeCompare(b));
+  }
+
+  function getMemorizationQuestions() {
+    return state.questions.filter((q) => q.category === "GERMANY" || q.category === state.selectedState);
+  }
+
+  function getMemorizationQuestionIds() {
+    return getMemorizationQuestions().map((q) => q._id);
+  }
+
+  function getOrderedMemorizationQuestionIds() {
+    const ids = getMemorizationQuestionIds();
+    const parseId = (id) => {
+      const parts = String(id).split("-");
+      const n = Number(parts[1]);
+      return Number.isFinite(n) ? n : Number.POSITIVE_INFINITY;
+    };
+    return [...ids].sort((a, b) => parseId(a) - parseId(b) || a.localeCompare(b));
   }
 
   function sessionKeyForMode(mode) {
@@ -625,6 +700,32 @@
     if (session.state && session.state !== state.selectedState) {
       clearSession(mode);
       return ensureSessionForMode(mode);
+    }
+    state.activeSession = session;
+    return session;
+  }
+
+  function ensureMemorizationSession(orderMode) {
+    const modeKey = orderMode === "ordered" ? "memorization.ordered" : "memorization.random";
+    let session = loadSession(modeKey);
+    if (!session || session.version !== APP.version) session = null;
+    const orderIds = orderMode === "ordered" ? getOrderedMemorizationQuestionIds() : null;
+    if (!session || !Array.isArray(session.orderIds) || session.state !== state.selectedState || session.orderMode !== orderMode) {
+      session = {
+        version: APP.version,
+        mode: "memorization",
+        state: state.selectedState,
+        orderMode,
+        orderIds: orderMode === "ordered" ? orderIds : shuffle(getMemorizationQuestionIds()),
+        index: 0,
+        createdAtMs: Date.now(),
+      };
+      saveSession(modeKey, session);
+    } else {
+      // refresh pool (ordered) but keep progress within bounds; random keeps its existing orderIds
+      if (orderMode === "ordered") session.orderIds = orderIds;
+      if (session.index >= session.orderIds.length) session.index = Math.max(0, session.orderIds.length - 1);
+      saveSession(modeKey, session);
     }
     state.activeSession = session;
     return session;
@@ -880,7 +981,7 @@
       <div class="muted">${t("introText")}</div>
       <div class="row" style="margin-top:12px">
         <button class="btn btn--primary" type="button" data-go="mode/train">${t("training")}</button>
-        <button class="btn" type="button" data-go="mode/memorization">${t("memorization")}</button>
+        <button class="btn" type="button" data-go="mode/memorization/random">${t("memorization")}</button>
         <button class="btn" type="button" data-go="mode/test">${t("test")}</button>
       </div>
     `;
@@ -920,14 +1021,20 @@
   }
 
   function renderMemorization() {
-    setActiveNav("mode/memorization");
-    ensureSessionForMode("memorization");
-    const session = state.activeSession;
+    const orderMode = state.route === "mode/memorization/ordered" ? "ordered" : "random";
+    setActiveNav(state.route);
+    const session = ensureMemorizationSession(orderMode);
+    if (orderMode === "ordered" && state.memOrderedShouldReset) {
+      session.index = 0;
+      saveSession("memorization.ordered", session);
+      state.memOrderedShouldReset = false;
+    }
     const qid = session.orderIds[session.index];
     const q = getQuestionById(qid);
     if (!q) return;
 
-    setTopbar(t("memorization"), `${q._id} • ${q.category}`);
+    const label = orderMode === "ordered" ? t("memorizationOrdered") : t("memorizationRandom");
+    setTopbar(`${t("memorization")} • ${label}`, `${q._id} • ${q.category}`);
     setTimerVisible(false);
     setFooterVisible(true);
     setProgress(session.index + 1, session.orderIds.length);
@@ -935,6 +1042,50 @@
     const showTranslation = state.lang !== "de";
 
     els.main.innerHTML = "";
+
+    if (orderMode === "ordered") {
+      const controls = document.createElement("div");
+      controls.className = "card";
+      controls.style.boxShadow = "none";
+      controls.innerHTML = `
+        <div class="row">
+          <label class="field" style="min-width:220px;margin:0" for="memGoToIdInput">
+            <span class="field__label">${t("goToId")}</span>
+            <input class="field__control" id="memGoToIdInput" placeholder="1" />
+          </label>
+          <button class="btn btn--primary" type="button" id="memGoToIdBtn">${t("go")}</button>
+          <button class="btn" type="button" id="memResetBtn">${t("resetToFirst")}</button>
+        </div>
+      `;
+      els.main.appendChild(controls);
+
+      const parseTarget = (raw) => {
+        const s = String(raw ?? "").trim();
+        if (!s) return null;
+        const m = s.match(/frage-(\d+)/i) ?? s.match(/^(\d+)$/);
+        if (!m) return null;
+        return `frage-${Number(m[1])}`;
+      };
+      controls.querySelector("#memGoToIdBtn").addEventListener("click", () => {
+        const target = parseTarget(controls.querySelector("#memGoToIdInput").value);
+        if (!target) return;
+        const idx = session.orderIds.indexOf(target);
+        if (idx < 0) return;
+        session.index = idx;
+        saveSession("memorization.ordered", session);
+        renderMemorization();
+      });
+      controls.querySelector("#memResetBtn").addEventListener("click", () => {
+        session.index = 0;
+        saveSession("memorization.ordered", session);
+        renderMemorization();
+      });
+      controls.querySelector("#memGoToIdInput").addEventListener("keydown", (ev) => {
+        if (ev.key !== "Enter") return;
+        controls.querySelector("#memGoToIdBtn").click();
+      });
+    }
+
     els.main.appendChild(
       renderQuestionCard(q, {
         mode: "memorization",
@@ -1554,12 +1705,17 @@
 
   function onRouteChange() {
     const route = getRouteFromHash();
+    state.prevRoute = state.route;
     state.route = route;
+    if (route === "mode/memorization/ordered" && state.prevRoute !== "mode/memorization/ordered") {
+      state.memOrderedShouldReset = true;
+    }
     closeSidebar();
     if (route !== "mode/test") stopTestTicker();
 
     if (route === "home") return renderHome();
-    if (route === "mode/memorization") return renderMemorization();
+    if (route === "mode/memorization/random") return renderMemorization();
+    if (route === "mode/memorization/ordered") return renderMemorization();
     if (route === "mode/train") return renderTraining();
     if (route === "mode/test") {
       const s = loadSession("test");
@@ -1577,7 +1733,9 @@
     setText(els.brandSubtitle, "Self-learning");
     setText(els.navHome, t("home"));
     setText(els.navSectionModes, t("modes"));
-    setText(els.navMem, t("memorization"));
+    setText(els.navMemTitle, t("memorization"));
+    setText(els.navMemRandom, t("memorizationRandom"));
+    setText(els.navMemOrdered, t("memorizationOrdered"));
     setText(els.navTrain, t("training"));
     setText(els.navTest, t("test"));
     setText(els.navReview, t("review"));
@@ -1587,7 +1745,7 @@
     setText(els.navSectionSettings, t("settings"));
     setText(els.languageLabel, t("language"));
     setText(els.stateLabel, t("stateForTest"));
-    setText(els.resetBtn, t("resetLocalData"));
+    setText(els.resetBtn, t("resetData"));
     setText(els.timerLabel, t("timer"));
     setText(els.progressLabel, t("progress"));
     setText(els.backBtn, t("back"));
@@ -1600,6 +1758,17 @@
     setText(els.confirmTitle, t("confirm"));
     setText(els.confirmCancelBtn, t("cancel"));
     setText(els.confirmOkBtn, t("ok"));
+
+    setText(els.resetDataTitle, t("resetDataTitle"));
+    setText(els.resetDataSubtitle, t("resetDataSubtitle"));
+    setText(els.resetStatsLabel, t("resetStats"));
+    setText(els.resetSessionsLabel, t("resetSessions"));
+    setText(els.resetDictionaryLabel, t("resetMyDictionary"));
+    setText(els.resetOtherLabel, t("resetOther"));
+    setText(els.resetLanguageLabel, t("resetLanguage"));
+    setText(els.resetStateLabel, t("resetState"));
+    setText(els.resetDataCancelBtn, t("cancel"));
+    setText(els.resetDataOkBtn, t("ok"));
 
     document.documentElement.lang = state.lang === "pt" ? "pt-BR" : state.lang;
   }
@@ -1646,36 +1815,84 @@
       writeJSON(key("selectedState"), state.selectedState);
       clearSession("test");
       clearSession("memorization");
+      clearSession("memorization.random");
+      clearSession("memorization.ordered");
       clearSession("train");
       if (state.route === "mode/test") onRouteChange();
       if (state.route === "mode/memorization" || state.route === "mode/train" || state.route === "mode/review" || state.route === "stats") {
         onRouteChange();
       }
+      if (state.route === "mode/memorization/random" || state.route === "mode/memorization/ordered") {
+        onRouteChange();
+      }
     });
 
     els.resetBtn.addEventListener("click", () => {
-      confirmDialog(t("resetConfirm"), () => {
-        Object.keys(localStorage)
-          .filter((k) => k.startsWith(APP.prefix))
-          .forEach((k) => localStorage.removeItem(k));
-        stopTestTicker();
-        state.lang = APP.defaultLang;
-        state.selectedState = APP.defaultState;
-        els.languageSelect.value = state.lang;
-        initStatesSelect();
-        syncStaticUITexts();
-        toast(t("dataResetDone"));
-        setRoute("home");
+      // defaults: everything checked except language + state
+      els.resetChkStats.checked = true;
+      els.resetChkSessions.checked = true;
+      els.resetChkDictionary.checked = true;
+      els.resetChkOther.checked = true;
+      els.resetChkLanguage.checked = false;
+      els.resetChkState.checked = false;
+      openModal("resetDataModal");
+    });
+
+    els.resetDataOkBtn.addEventListener("click", () => {
+      const delStats = !!els.resetChkStats.checked;
+      const delSessions = !!els.resetChkSessions.checked;
+      const delDict = !!els.resetChkDictionary.checked;
+      const delOther = !!els.resetChkOther.checked;
+      const delLang = !!els.resetChkLanguage.checked;
+      const delState = !!els.resetChkState.checked;
+
+      const keys = Object.keys(localStorage).filter((k) => k.startsWith(APP.prefix));
+      keys.forEach((k) => {
+        if (!delLang && k === key("lang")) return;
+        if (!delState && k === key("selectedState")) return;
+
+        if (delStats && (k === key("statsById") || k === key("stats.sort"))) {
+          localStorage.removeItem(k);
+          return;
+        }
+        if (delSessions && k.startsWith(key("session."))) {
+          localStorage.removeItem(k);
+          return;
+        }
+        if (delDict && k === key("myDictionary")) {
+          localStorage.removeItem(k);
+          return;
+        }
+
+        // Anything else under our prefix
+        if (delOther) {
+          localStorage.removeItem(k);
+        }
       });
+
+      stopTestTicker();
+      closeModal("resetDataModal");
+
+      // re-load state/lang only if user chose to delete them
+      if (delLang) state.lang = readJSON(key("lang"), APP.defaultLang);
+      if (delState) state.selectedState = readJSON(key("selectedState"), APP.defaultState);
+
+      els.languageSelect.value = state.lang;
+      initStatesSelect();
+      syncStaticUITexts();
+      toast(t("resetDone"));
+      onRouteChange();
     });
 
     els.backBtn.addEventListener("click", () => {
       const r = state.route;
-      if (r === "mode/memorization") {
-        const s = ensureSessionForMode("memorization");
+      if (r === "mode/memorization/random" || r === "mode/memorization/ordered") {
+        const orderMode = r === "mode/memorization/ordered" ? "ordered" : "random";
+        const modeKey = orderMode === "ordered" ? "memorization.ordered" : "memorization.random";
+        const s = loadSession(modeKey);
         if (s.index > 0) {
           s.index -= 1;
-          saveSession("memorization", s);
+          saveSession(modeKey, s);
         }
         return onRouteChange();
       }
@@ -1706,11 +1923,13 @@
 
     els.nextBtn.addEventListener("click", () => {
       const r = state.route;
-      if (r === "mode/memorization") {
-        const s = ensureSessionForMode("memorization");
+      if (r === "mode/memorization/random" || r === "mode/memorization/ordered") {
+        const orderMode = r === "mode/memorization/ordered" ? "ordered" : "random";
+        const modeKey = orderMode === "ordered" ? "memorization.ordered" : "memorization.random";
+        const s = loadSession(modeKey) ?? ensureMemorizationSession(orderMode);
         if (s.index < s.orderIds.length - 1) {
           s.index += 1;
-          saveSession("memorization", s);
+          saveSession(modeKey, s);
         }
         return onRouteChange();
       }
@@ -1830,7 +2049,9 @@
       toast: document.getElementById("toast"),
       navHome: document.getElementById("navHome"),
       navSectionModes: document.getElementById("navSectionModes"),
-      navMem: document.getElementById("navMem"),
+      navMemTitle: document.getElementById("navMemTitle"),
+      navMemRandom: document.getElementById("navMemRandom"),
+      navMemOrdered: document.getElementById("navMemOrdered"),
       navTrain: document.getElementById("navTrain"),
       navTest: document.getElementById("navTest"),
       navReview: document.getElementById("navReview"),
@@ -1852,6 +2073,23 @@
       confirmText: document.getElementById("confirmText"),
       confirmCancelBtn: document.getElementById("confirmCancelBtn"),
       confirmOkBtn: document.getElementById("confirmOkBtn"),
+
+      resetDataTitle: document.getElementById("resetDataTitle"),
+      resetDataSubtitle: document.getElementById("resetDataSubtitle"),
+      resetStatsLabel: document.getElementById("resetStatsLabel"),
+      resetSessionsLabel: document.getElementById("resetSessionsLabel"),
+      resetDictionaryLabel: document.getElementById("resetDictionaryLabel"),
+      resetOtherLabel: document.getElementById("resetOtherLabel"),
+      resetLanguageLabel: document.getElementById("resetLanguageLabel"),
+      resetStateLabel: document.getElementById("resetStateLabel"),
+      resetChkStats: document.getElementById("resetChkStats"),
+      resetChkSessions: document.getElementById("resetChkSessions"),
+      resetChkDictionary: document.getElementById("resetChkDictionary"),
+      resetChkOther: document.getElementById("resetChkOther"),
+      resetChkLanguage: document.getElementById("resetChkLanguage"),
+      resetChkState: document.getElementById("resetChkState"),
+      resetDataCancelBtn: document.getElementById("resetDataCancelBtn"),
+      resetDataOkBtn: document.getElementById("resetDataOkBtn"),
     });
 
     state.lang = readJSON(key("lang"), APP.defaultLang);

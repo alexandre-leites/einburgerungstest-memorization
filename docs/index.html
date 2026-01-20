@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#111827" />
     <title>Einbürgerungstest – Self-learning</title>
-    <link rel="stylesheet" href="styles/general.css" />
+    <link rel="stylesheet" href="styles/general.css?v=2026-01-20-1" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -28,7 +28,23 @@
         <nav class="nav">
           <button class="nav__item" type="button" data-route="home" id="navHome">Home</button>
           <div class="nav__section" id="navSectionModes">Modes</div>
-          <button class="nav__item" type="button" data-route="mode/memorization" id="navMem">Memorization</button>
+          <button
+            class="nav__item nav__item--has-submenu"
+            type="button"
+            data-route="mode/memorization/random"
+            data-route-prefix="mode/memorization/"
+            id="navMemGroup"
+          >
+            <span class="nav__itemText" id="navMemTitle">Memorization</span>
+          </button>
+          <div class="nav__submenu" aria-label="Memorization submenu">
+            <button class="nav__item nav__item--sub" type="button" data-route="mode/memorization/random" id="navMemRandom">
+              Random order
+            </button>
+            <button class="nav__item nav__item--sub" type="button" data-route="mode/memorization/ordered" id="navMemOrdered">
+              Ordered (by ID)
+            </button>
+          </div>
           <button class="nav__item" type="button" data-route="mode/train" id="navTrain">Training</button>
           <button class="nav__item" type="button" data-route="mode/test" id="navTest">Test</button>
           <button class="nav__item" type="button" data-route="mode/review" id="navReview">Review</button>
@@ -51,7 +67,7 @@
               <select class="field__control" id="stateSelect"></select>
             </label>
 
-            <button class="btn btn--ghost" type="button" id="resetBtn">Reset local data</button>
+            <button class="btn btn--ghost" type="button" id="resetBtn">Reset data</button>
           </div>
         </nav>
 
@@ -140,8 +156,57 @@
       </div>
     </div>
 
+    <div class="modal" id="resetDataModal" hidden role="dialog" aria-modal="true" aria-labelledby="resetDataTitle">
+      <div class="modal__backdrop" data-close-modal="resetDataModal"></div>
+      <div class="modal__panel modal__panel--sm">
+        <div class="modal__header">
+          <div>
+            <div class="modal__title" id="resetDataTitle">Reset data</div>
+            <div class="modal__subtitle" id="resetDataSubtitle"></div>
+          </div>
+          <button class="icon-btn" type="button" data-close-modal="resetDataModal" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__content">
+          <div class="stack">
+            <label class="row" style="justify-content:space-between;gap:12px">
+              <span id="resetStatsLabel">Statistics</span>
+              <input type="checkbox" id="resetChkStats" />
+            </label>
+            <label class="row" style="justify-content:space-between;gap:12px">
+              <span id="resetSessionsLabel">Sessions</span>
+              <input type="checkbox" id="resetChkSessions" />
+            </label>
+            <label class="row" style="justify-content:space-between;gap:12px">
+              <span id="resetDictionaryLabel">My dictionary</span>
+              <input type="checkbox" id="resetChkDictionary" />
+            </label>
+            <label class="row" style="justify-content:space-between;gap:12px">
+              <span id="resetOtherLabel">Other local settings</span>
+              <input type="checkbox" id="resetChkOther" />
+            </label>
+            <hr style="border:0;border-top:1px solid rgba(248,250,252,0.14);margin:6px 0" />
+            <label class="row" style="justify-content:space-between;gap:12px">
+              <span id="resetLanguageLabel">Language</span>
+              <input type="checkbox" id="resetChkLanguage" />
+            </label>
+            <label class="row" style="justify-content:space-between;gap:12px">
+              <span id="resetStateLabel">State</span>
+              <input type="checkbox" id="resetChkState" />
+            </label>
+          </div>
+
+          <div class="row row--right" style="margin-top:10px">
+            <button class="btn btn--ghost" type="button" data-close-modal="resetDataModal" id="resetDataCancelBtn">
+              Cancel
+            </button>
+            <button class="btn btn--primary" type="button" id="resetDataOkBtn">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="toast" id="toast" hidden></div>
 
-    <script src="scripts/general.js"></script>
+    <script src="scripts/general.js?v=2026-01-20-1"></script>
   </body>
 </html>

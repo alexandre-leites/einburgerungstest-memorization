@@ -113,6 +113,34 @@ button, select, textarea { font: inherit; }
 .brand__subtitle { font-size: 12px; color: var(--muted); }
 
 .nav { display: flex; flex-direction: column; gap: 8px; }
+.nav__item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.nav__itemText { min-width: 0; }
+
+.nav__item--has-submenu::after {
+  content: "›";
+  color: rgba(248, 250, 252, 0.66);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nav__submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 10px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(248, 250, 252, 0.14);
+}
+
+.nav__item--sub {
+  margin: 0;
+}
 .nav__section {
   margin-top: 10px;
   font-size: 12px;
