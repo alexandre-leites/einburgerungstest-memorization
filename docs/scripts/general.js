@@ -460,6 +460,14 @@
     return [...germanyPick, ...statePick];
   }
 
+  function getPracticeQuestions() {
+    return state.questions.filter((q) => q.category === state.selectedState);
+  }
+
+  function getPracticeQuestionIds() {
+    return getPracticeQuestions().map((q) => q._id);
+  }
+
   function sessionKeyForMode(mode) {
     return key(`session.${mode}`);
   }
@@ -504,10 +512,32 @@
     let session = loadSession(mode);
     if (!session || session.version !== APP.version) session = null;
     if (mode === "train") {
-      if (!session || session.mode !== "train" || !session.currentQuestionId) {
+      const poolIds = getPracticeQuestionIds();
+      if (!poolIds.length) {
         session = {
           version: APP.version,
           mode: "train",
+          state: state.selectedState,
+          poolIds: [],
+          currentQuestionId: null,
+          history: [],
+          creditsById: {},
+          nextEligibleAtById: {},
+          sessionStatsById: {},
+          answeredCount: 0,
+          currentAttempt: null,
+        };
+        saveSession("train", session);
+        state.activeSession = session;
+        return session;
+      }
+
+      if (!session || session.mode !== "train" || session.state !== state.selectedState) {
+        session = {
+          version: APP.version,
+          mode: "train",
+          state: state.selectedState,
+          poolIds,
           currentQuestionId: null,
           history: [],
           creditsById: {}, // id -> credits (default APP.trainDefaultCredits)
@@ -517,6 +547,8 @@
           currentAttempt: null, // {chosenIndex,isCorrect, at}
         };
       }
+      // refresh poolIds if questions file changed
+      session.poolIds = poolIds;
       if (!session.currentQuestionId) {
         session.currentQuestionId = pickNextTrainingQuestionId(session, Date.now());
         if (session.currentQuestionId) {
@@ -529,14 +561,21 @@
     }
 
     if (!session || !Array.isArray(session.orderIds)) {
-      const orderIds = shuffle(state.questions.map((q) => q._id));
+      const poolIds = getPracticeQuestionIds();
+      const orderIds = shuffle(poolIds);
       session = {
         version: APP.version,
         mode,
+        state: state.selectedState,
         orderIds,
         index: 0,
       };
       saveSession(mode, session);
+    }
+    // if state changed since session was created, reset the session to the new pool
+    if (session.state && session.state !== state.selectedState) {
+      clearSession(mode);
+      return ensureSessionForMode(mode);
     }
     state.activeSession = session;
     return session;
@@ -572,7 +611,7 @@
   }
 
   function pickNextTrainingQuestionId(session, nowMs) {
-    const ids = state.questions.map((q) => q._id);
+    const ids = Array.isArray(session.poolIds) && session.poolIds.length ? session.poolIds : getPracticeQuestionIds();
     const eligible = [];
     let totalWeight = 0;
     ids.forEach((qid) => {
@@ -1066,7 +1105,7 @@
   function getStatsRows() {
     const all = statsReadAll();
     const rows = [];
-    state.questions.forEach((q) => {
+    getPracticeQuestions().forEach((q) => {
       const stat = all[q._id];
       if (!stat) return;
       const total = (stat.correct ?? 0) + (stat.wrong ?? 0);
@@ -1528,7 +1567,12 @@
       state.selectedState = els.stateSelect.value;
       writeJSON(key("selectedState"), state.selectedState);
       clearSession("test");
+      clearSession("memorization");
+      clearSession("train");
       if (state.route === "mode/test") onRouteChange();
+      if (state.route === "mode/memorization" || state.route === "mode/train" || state.route === "mode/review" || state.route === "stats") {
+        onRouteChange();
+      }
     });
 
     els.resetBtn.addEventListener("click", () => {
