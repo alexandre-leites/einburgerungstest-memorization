@@ -1,742 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Einbürgerungstest Trainer</title>
-    <style>
-        :root {
-            --primary: #003399;
-            --secondary: #DD0000;
-            --gold: #FFCC00;
-            --bg: #f4f4f4;
-            --card: #ffffff;
-            --text: #333;
-            --sub-text: #666;
-            --success: #28a745;
-            --error: #dc3545;
-        }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111827" />
+    <title>Einbürgerungstest – Self-learning</title>
+    <link rel="stylesheet" href="styles/general.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* Header */
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .lang-switcher {
-            display: flex;
-            gap: 5px;
-        }
-
-        .lang-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.5);
-            color: rgba(255,255,255,0.8);
-            padding: 5px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-
-        .lang-btn:hover { background: rgba(255,255,255,0.3); }
-        .lang-btn.active {
-            background: white;
-            color: var(--primary);
-            border-color: white;
-            opacity: 1;
-        }
-
-        /* Main Content */
-        main {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .view { display: none; }
-        .view.active { display: block; }
-
-        /* Loading */
-        #loading-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 1000;
-            text-align: center;
-            padding: 20px;
-        }
-
-        /* Menu */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .menu-btn {
-            padding: 1.5rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: transform 0.1s;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .menu-btn:active { transform: scale(0.98); }
-        .menu-btn span.icon { font-size: 2rem; margin-left: 10px; }
-        .menu-btn strong { display: block; font-size: 1.1rem; margin-bottom: 4px; }
-        .menu-btn small { color: var(--sub-text); }
-
-        .settings-box {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-        
-        select { width: 100%; padding: 10px; font-size: 1rem; margin-top: 5px; }
-
-        /* Question Card */
-        .card {
-            background: var(--card);
-            border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-        }
-
-        .question-text {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-
-        /* Dual language styling */
-        .sub-text {
-            display: block;
-            font-weight: normal;
-            font-size: 1rem;
-            color: #0055aa; /* Azulado para diferenciar */
-            margin-top: 6px;
-            font-style: italic;
-            border-top: 1px solid #eee;
-            padding-top: 4px;
-        }
-
-        .question-image {
-            max-width: 100%;
-            height: auto;
-            margin-bottom: 1rem;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-        .options-grid { display: flex; flex-direction: column; gap: 10px; }
-
-        .option-btn {
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            background: white;
-            text-align: left;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
-            line-height: 1.3;
-        }
-
-        .option-btn.selected { border-color: var(--primary); background-color: #e6f0ff; }
-        .option-btn.correct { border-color: var(--success); background-color: #d4edda; color: #155724; }
-        .option-btn.wrong { border-color: var(--error); background-color: #f8d7da; color: #721c24; }
-        
-        /* Footer */
-        footer {
-            background: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid #ddd;
-        }
-
-        .nav-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background: var(--primary);
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-        .nav-btn:disabled { background: #ccc; }
-        .nav-btn.secondary { background: #6c757d; }
-
-        /* Result */
-        .result-score { text-align: center; font-size: 3rem; margin: 2rem 0; }
-        .pass { color: var(--success); }
-        .fail { color: var(--error); }
-
-    </style>
-</head>
-<body>
-
-<div id="loading-overlay">
-    <h2 id="txt-loading">Carregando / Loading...</h2>
-    <p style="font-size:0.9rem; color:#666; margin-top:10px;">
-        Certifique-se de usar um servidor local (localhost) para carregar o JSON.<br>
-        Make sure to use a local server to load the JSON.
-    </p>
-</div>
-
-<header>
-    <div id="app-title">🇩🇪 Einbürgerung</div>
-    <div class="lang-switcher">
-        <button class="lang-btn active" id="btn-de" onclick="setLanguage('de')">DE</button>
-        <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">EN</button>
-        <button class="lang-btn" id="btn-pt" onclick="setLanguage('pt')">PT</button>
-    </div>
-</header>
-
-<main>
-    <div id="home-view" class="view">
-        <div class="settings-box">
-            <label id="lbl-state">Bundesland (Estado):</label>
-            <select id="state-selector" onchange="saveStatePreference()">
-                <option value="Berlin">Berlin</option>
-                <option value="Baden-Württemberg">Baden-Württemberg</option>
-                <option value="Bayern">Bayern</option>
-                <option value="Brandenburg">Brandenburg</option>
-                <option value="Bremen">Bremen</option>
-                <option value="Hamburg">Hamburg</option>
-                <option value="Hessen">Hessen</option>
-                <option value="Mecklenburg-Vorpommern">Mecklenburg-Vorpommern</option>
-                <option value="Niedersachsen">Niedersachsen</option>
-                <option value="Nordrhein-Westfalen">Nordrhein-Westfalen</option>
-                <option value="Rheinland-Pfalz">Rheinland-Pfalz</option>
-                <option value="Saarland">Saarland</option>
-                <option value="Sachsen">Sachsen</option>
-                <option value="Sachsen-Anhalt">Sachsen-Anhalt</option>
-                <option value="Schleswig-Holstein">Schleswig-Holstein</option>
-                <option value="Thüringen">Thüringen</option>
-            </select>
+    <div class="app" id="app">
+      <aside class="sidebar" id="sidebar" aria-label="Navigation">
+        <div class="sidebar__top">
+          <div class="brand">
+            <div class="brand__logo" aria-hidden="true">E</div>
+            <div class="brand__text">
+              <div class="brand__title">Einbürgerungstest</div>
+              <div class="brand__subtitle" id="brandSubtitle">Self-learning</div>
+            </div>
+          </div>
+          <button class="icon-btn sidebar__close" id="sidebarCloseBtn" type="button" aria-label="Close menu">
+            ✕
+          </button>
         </div>
 
-        <div class="menu-grid">
-            <button class="menu-btn" onclick="startMode('memorization')">
-                <div>
-                    <strong id="menu-mem-title">🧠 Memorieren</strong>
-                    <small id="menu-mem-desc">Nur richtige Antworten</small>
-                </div>
-                <span class="icon">👁️</span>
+        <nav class="nav">
+          <button class="nav__item" type="button" data-route="home" id="navHome">Home</button>
+          <div class="nav__section" id="navSectionModes">Modes</div>
+          <button class="nav__item" type="button" data-route="mode/memorization" id="navMem">Memorization</button>
+          <button class="nav__item" type="button" data-route="mode/train" id="navTrain">Training</button>
+          <button class="nav__item" type="button" data-route="mode/test" id="navTest">Test</button>
+          <button class="nav__item" type="button" data-route="mode/review" id="navReview">Review</button>
+          <div class="nav__section" id="navSectionTools">Tools</div>
+          <button class="nav__item" type="button" data-route="stats" id="navStats">Statistics</button>
+          <button class="nav__item" type="button" data-route="dictionary" id="navDict">My dictionary</button>
+          <div class="nav__section" id="navSectionSettings">Settings</div>
+          <div class="sidebar__settings">
+            <label class="field" for="languageSelect">
+              <span class="field__label" id="languageLabel">Language</span>
+              <select class="field__control" id="languageSelect">
+                <option value="de">DE</option>
+                <option value="en">EN</option>
+                <option value="pt">PT (Brasil)</option>
+              </select>
+            </label>
+
+            <label class="field" for="stateSelect">
+              <span class="field__label" id="stateLabel">State (for test)</span>
+              <select class="field__control" id="stateSelect"></select>
+            </label>
+
+            <button class="btn btn--ghost" type="button" id="resetBtn">Reset local data</button>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="overlay" id="overlay" hidden></div>
+
+      <div class="shell">
+        <header class="topbar">
+          <div class="topbar__left">
+            <button class="icon-btn" id="sidebarOpenBtn" type="button" aria-label="Open menu">
+              ☰
             </button>
-            <button class="menu-btn" onclick="startMode('training')">
-                <div>
-                    <strong id="menu-train-title">🏋️ Training</strong>
-                    <small id="menu-train-desc">Sofortiges Feedback</small>
-                </div>
-                <span class="icon">✅</span>
-            </button>
-            <button class="menu-btn" onclick="startMode('test')">
-                <div>
-                    <strong id="menu-test-title">📝 Test Simulation</strong>
-                    <small id="menu-test-desc">33 Fragen - 60 Min</small>
-                </div>
-                <span class="icon">⏱️</span>
-            </button>
-            <button class="menu-btn" onclick="startMode('review')">
-                <div>
-                    <strong id="menu-review-title">🔄 Fehlerüberprüfung</strong>
-                    <small id="menu-review-desc">Übe deine Fehler</small>
-                </div>
-                <span class="icon">📉</span>
-            </button>
-            <button class="menu-btn" onclick="resetStats()" style="background:#fff0f0; color:red;">
-                <div>
-                    <strong id="menu-reset-title">🗑️ Statistik zurücksetzen</strong>
-                </div>
-                <span class="icon">⚠️</span>
-            </button>
-        </div>
+            <div class="topbar__title">
+              <div class="topbar__route" id="routeTitle">Home</div>
+              <div class="topbar__meta" id="routeMeta"></div>
+            </div>
+          </div>
+
+          <div class="topbar__right">
+            <div class="pill" id="timerPill" hidden>
+              <span class="pill__label" id="timerLabel">Timer</span>
+              <span class="pill__value mono" id="timerValue">60:00</span>
+            </div>
+            <div class="pill">
+              <span class="pill__label" id="progressLabel">Progress</span>
+              <span class="pill__value mono" id="progressValue">0/0</span>
+            </div>
+          </div>
+        </header>
+
+        <main class="main" id="main" tabindex="-1"></main>
+
+        <footer class="footer">
+          <button class="btn btn--ghost" type="button" id="backBtn">Back</button>
+          <button class="btn" type="button" id="homeBtn">Home</button>
+          <button class="btn btn--primary" type="button" id="nextBtn">Next</button>
+        </footer>
+      </div>
     </div>
 
-    <div id="quiz-view" class="view">
-        <div class="status-bar">
-            <span id="progress-text">Q: 1/33</span>
-            <span id="timer-text"></span>
+    <div class="modal" id="wordModal" hidden role="dialog" aria-modal="true" aria-labelledby="wordModalTitle">
+      <div class="modal__backdrop" data-close-modal="wordModal"></div>
+      <div class="modal__panel">
+        <div class="modal__header">
+          <div>
+            <div class="modal__title" id="wordModalTitle">Word</div>
+            <div class="modal__subtitle" id="wordModalSubtitle"></div>
+          </div>
+          <button class="icon-btn" type="button" data-close-modal="wordModal" aria-label="Close">✕</button>
         </div>
-        <div class="card">
-            <img id="q-image" class="question-image" style="display:none;" alt="Question Image">
-            <div id="q-text" class="question-text">Frage Text...</div>
-            <div id="options-container" class="options-grid">
-                </div>
+        <div class="modal__content">
+          <div class="card">
+            <div class="card__title" id="wordBaseTitle">Base dictionary</div>
+            <div class="stack" id="wordBaseContent"></div>
+          </div>
+          <div class="card">
+            <div class="card__title" id="wordPersonalTitle">My note</div>
+            <textarea class="textarea" id="wordNoteInput" rows="4" placeholder=""></textarea>
+            <div class="row row--right">
+              <button class="btn btn--ghost" type="button" id="removeWordBtn">Remove</button>
+              <button class="btn btn--primary" type="button" id="saveWordBtn">Save</button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
-    <div id="result-view" class="view">
-        <h2 id="res-title">Ergebnis</h2>
-        <div id="final-score" class="result-score"></div>
-        <p id="final-message" style="text-align: center; font-size: 1.2rem;"></p>
-        <br>
-        <button class="menu-btn" onclick="goHome()" style="background: var(--primary); color: white; justify-content: center;">
-            <span id="btn-home-res">🏠 Home</span>
-        </button>
+    <div class="modal" id="confirmModal" hidden role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="modal__backdrop" data-close-modal="confirmModal"></div>
+      <div class="modal__panel modal__panel--sm">
+        <div class="modal__header">
+          <div class="modal__title" id="confirmTitle">Confirm</div>
+          <button class="icon-btn" type="button" data-close-modal="confirmModal" aria-label="Close">✕</button>
+        </div>
+        <div class="modal__content">
+          <p class="muted" id="confirmText"></p>
+          <div class="row row--right">
+            <button class="btn btn--ghost" type="button" data-close-modal="confirmModal" id="confirmCancelBtn">Cancel</button>
+            <button class="btn btn--primary" type="button" id="confirmOkBtn">OK</button>
+          </div>
+        </div>
+      </div>
     </div>
-</main>
 
-<footer>
-    <button class="nav-btn secondary" id="btn-home-footer" onclick="goHome()">🏠</button>
-    <div style="flex:1"></div>
-    <button class="nav-btn" id="btn-next" onclick="nextQuestion()">Next ➡️</button>
-</footer>
+    <div class="toast" id="toast" hidden></div>
 
-<script>
-    // --- DICTIONARY FOR UI ---
-    const uiTranslations = {
-        de: {
-            state: "Bundesland:",
-            memTitle: "🧠 Memorieren", memDesc: "Nur richtige Antworten",
-            trainTitle: "🏋️ Training", trainDesc: "Sofortiges Feedback",
-            testTitle: "📝 Test Simulation", testDesc: "33 Fragen - 60 Min",
-            revTitle: "🔄 Fehlerüberprüfung", revDesc: "Übe deine Fehler",
-            resetTitle: "🗑️ Statistik zurücksetzen",
-            next: "Weiter ➡️", finish: "Beenden 🏁", home: "Startseite",
-            resTitle: "Ergebnis",
-            pass: "Herzlichen Glückwunsch! Du hast bestanden.",
-            fail: "Leider nicht bestanden.",
-            alertReset: "Bist du sicher? Alle Statistiken werden gelöscht.",
-            alertNoData: "Keine Daten geladen.",
-            alertNoErrors: "Keine Fehler gespeichert! Super!",
-            alertSessionEnd: "Sitzung beendet."
-        },
-        en: {
-            state: "Federal State:",
-            memTitle: "🧠 Memorization", memDesc: "Correct answers only",
-            trainTitle: "🏋️ Training", trainDesc: "Immediate feedback",
-            testTitle: "📝 Test Simulation", testDesc: "33 Questions - 60 Min",
-            revTitle: "🔄 Review Errors", revDesc: "Practice your mistakes",
-            resetTitle: "🗑️ Reset Statistics",
-            next: "Next ➡️", finish: "Finish 🏁", home: "Home",
-            resTitle: "Result",
-            pass: "Congratulations! You passed.",
-            fail: "Unfortunately, you did not pass.",
-            alertReset: "Are you sure? All stats will be deleted.",
-            alertNoData: "Data not loaded.",
-            alertNoErrors: "No errors recorded yet! Great job!",
-            alertSessionEnd: "Session finished."
-        },
-        pt: {
-            state: "Estado (Bundesland):",
-            memTitle: "🧠 Memorização", memDesc: "Apenas respostas corretas",
-            trainTitle: "🏋️ Treino", trainDesc: "Feedback imediato",
-            testTitle: "📝 Simulado (Teste)", testDesc: "33 Questões - 60 Min",
-            revTitle: "🔄 Revisão de Erros", revDesc: "Pratique o que errou",
-            resetTitle: "🗑️ Resetar Estatísticas",
-            next: "Próxima ➡️", finish: "Finalizar 🏁", home: "Início",
-            resTitle: "Resultado",
-            pass: "Parabéns! Você passou.",
-            fail: "Infelizmente você não passou.",
-            alertReset: "Tem certeza? Todo histórico será apagado.",
-            alertNoData: "Dados não carregados.",
-            alertNoErrors: "Nenhum erro registrado ainda! Ótimo.",
-            alertSessionEnd: "Sessão finalizada."
-        }
-    };
-
-    // --- DATA & CONFIG ---
-    let questionsData = []; 
-    const JSON_FILE = 'questions.json';
-    
-    // --- STATE ---
-    let currentMode = ''; 
-    let currentLanguage = 'de'; // 'de' (default/hidden), 'en', 'pt'
-    let currentQuestions = [];
-    let currentIndex = 0;
-    let userAnswers = {}; 
-    let testTimer = null;
-    let timeRemaining = 3600;
-    let userState = localStorage.getItem('userState') || 'Berlin';
-    const STATS_KEY = 'einbuergerung_stats';
-
-    // --- INIT ---
-    document.addEventListener('DOMContentLoaded', async () => {
-        document.getElementById('state-selector').value = userState;
-        
-        // Initial UI Update (Default DE)
-        updateUI();
-
-        try {
-            const response = await fetch(JSON_FILE);
-            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-            
-            questionsData = await response.json();
-            
-            document.getElementById('loading-overlay').style.display = 'none';
-            document.getElementById('home-view').classList.add('active');
-            
-        } catch (error) {
-            console.error("Error loading JSON:", error);
-            const loadingMsg = document.getElementById('txt-loading');
-            loadingMsg.innerText = "Error: questions.json not found";
-            loadingMsg.style.color = "red";
-        }
-    });
-
-    // --- LANGUAGE & UI ---
-    function setLanguage(lang) {
-        currentLanguage = lang;
-        
-        // Update Buttons UI
-        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`btn-${lang}`).classList.add('active');
-
-        // Update UI Texts (Menu, buttons)
-        updateUI();
-
-        // Re-render question if quiz is active
-        if(document.getElementById('quiz-view').classList.contains('active')) {
-            renderCurrentQuestion();
-        }
-    }
-
-    function updateUI() {
-        const t = uiTranslations[currentLanguage];
-        
-        // Menu
-        document.getElementById('lbl-state').innerText = t.state;
-        document.getElementById('menu-mem-title').innerText = t.memTitle;
-        document.getElementById('menu-mem-desc').innerText = t.memDesc;
-        document.getElementById('menu-train-title').innerText = t.trainTitle;
-        document.getElementById('menu-train-desc').innerText = t.trainDesc;
-        document.getElementById('menu-test-title').innerText = t.testTitle;
-        document.getElementById('menu-test-desc').innerText = t.testDesc;
-        document.getElementById('menu-review-title').innerText = t.revTitle;
-        document.getElementById('menu-review-desc').innerText = t.revDesc;
-        document.getElementById('menu-reset-title').innerText = t.resetTitle;
-
-        // Result & Footer
-        document.getElementById('res-title').innerText = t.resTitle;
-        document.getElementById('btn-home-res').innerText = "🏠 " + t.home;
-        
-        // If in quiz mode, update next button text
-        const nextBtn = document.getElementById('btn-next');
-        if (currentQuestions.length > 0 && currentIndex === currentQuestions.length - 1) {
-            nextBtn.innerText = t.finish;
-        } else {
-            nextBtn.innerText = t.next;
-        }
-    }
-
-    function getUIText(key) {
-        return uiTranslations[currentLanguage][key];
-    }
-
-    // --- NAVIGATION ---
-    function goHome() {
-        clearInterval(testTimer);
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('home-view').classList.add('active');
-        document.getElementById('btn-next').style.display = 'none';
-        document.getElementById('timer-text').innerText = '';
-    }
-
-    function saveStatePreference() {
-        userState = document.getElementById('state-selector').value;
-        localStorage.setItem('userState', userState);
-    }
-
-    // --- MODES START ---
-    function startMode(mode) {
-        if(questionsData.length === 0) {
-            alert(getUIText('alertNoData'));
-            return;
-        }
-
-        currentMode = mode;
-        userAnswers = {};
-        currentIndex = 0;
-        
-        // Reset button text
-        document.getElementById('btn-next').innerText = getUIText('next');
-        
-        if (mode === 'memorization' || mode === 'training') {
-            currentQuestions = questionsData.filter(q => q.category === 'GERMANY' || q.category === userState);
-            shuffleArray(currentQuestions);
-        } else if (mode === 'test') {
-            generateTest();
-        } else if (mode === 'review') {
-            const stats = getStats();
-            let errorIds = Object.keys(stats).filter(id => stats[id].w > 0);
-            
-            if (errorIds.length === 0) {
-                alert(getUIText('alertNoErrors'));
-                return;
-            }
-            
-            currentQuestions = questionsData.filter(q => errorIds.includes(q._id));
-            currentQuestions.sort((a, b) => stats[b._id].w - stats[a._id].w);
-        }
-
-        if (currentQuestions.length > 0) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('quiz-view').classList.add('active');
-            document.getElementById('btn-next').style.display = 'block';
-            
-            if(mode === 'test') startTimer();
-            else document.getElementById('timer-text').innerText = '';
-            
-            renderCurrentQuestion();
-        }
-    }
-
-    function generateTest() {
-        const general = questionsData.filter(q => q.category === 'GERMANY');
-        const state = questionsData.filter(q => q.category === userState);
-        
-        shuffleArray(general);
-        shuffleArray(state);
-        
-        currentQuestions = [...general.slice(0, 30), ...state.slice(0, 3)];
-    }
-
-    // --- QUIZ RENDERING ---
-
-    function renderCurrentQuestion() {
-        const q = currentQuestions[currentIndex];
-        const lang = currentLanguage;
-        
-        document.getElementById('progress-text').innerText = `Q: ${currentIndex + 1}/${currentQuestions.length}`;
-        
-        // Image Logic
-        const imgEl = document.getElementById('q-image');
-        if (q.question.image) {
-            imgEl.src = q.question.image;
-            imgEl.style.display = 'block';
-            imgEl.onerror = () => { imgEl.style.display = 'none'; };
-        } else {
-            imgEl.style.display = 'none';
-        }
-
-        // --- QUESTION TEXT LOGIC (APPEND) ---
-        const textEl = document.getElementById('q-text');
-        let qHtml = `<div>${q.question.text}</div>`; // Always DE base
-        
-        if (lang === 'pt' && q.question.text_pt) {
-            qHtml += `<span class="sub-text">${q.question.text_pt}</span>`;
-        } else if (lang === 'en' && q.question.text_en) {
-            qHtml += `<span class="sub-text">${q.question.text_en}</span>`;
-        }
-        textEl.innerHTML = qHtml;
-
-        // --- OPTIONS LOGIC (APPEND) ---
-        const optsContainer = document.getElementById('options-container');
-        optsContainer.innerHTML = '';
-
-        q.options.forEach((optDE, idx) => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            
-            // Build Button Content
-            let btnHtml = `<div>${optDE}</div>`;
-            
-            if (lang === 'pt' && q.options_pt) {
-                btnHtml += `<div class="sub-text">${q.options_pt[idx]}</div>`;
-            } else if (lang === 'en' && q.options_en) {
-                btnHtml += `<div class="sub-text">${q.options_en[idx]}</div>`;
-            }
-            
-            btn.innerHTML = btnHtml;
-
-            // Mode Logic
-            if (currentMode === 'memorization') {
-                if (idx === q.answerIndex) {
-                    btn.classList.add('correct');
-                } else {
-                    // Hide text in memorization for wrong answers? 
-                    // User asked for "-------". 
-                    btn.innerHTML = `<div>------------------</div>`;
-                    btn.disabled = true;
-                    btn.style.opacity = "0.5";
-                }
-            } 
-            else if (currentMode === 'training' || currentMode === 'review') {
-                btn.onclick = () => handleTrainingClick(btn, q, idx);
-                if (userAnswers[q._id] !== undefined) {
-                    btn.disabled = true;
-                    if (idx === q.answerIndex) btn.classList.add('correct');
-                    if (idx === userAnswers[q._id] && idx !== q.answerIndex) btn.classList.add('wrong');
-                }
-            } 
-            else if (currentMode === 'test') {
-                btn.onclick = () => handleTestClick(btn, q, idx);
-                if (userAnswers[q._id] === idx) {
-                    btn.classList.add('selected');
-                }
-            }
-
-            optsContainer.appendChild(btn);
-        });
-
-        const nextBtn = document.getElementById('btn-next');
-        const t = uiTranslations[currentLanguage];
-        if (currentIndex === currentQuestions.length - 1) {
-            nextBtn.innerText = t.finish;
-        } else {
-            nextBtn.innerText = t.next;
-        }
-    }
-
-    // --- HANDLERS ---
-
-    function handleTrainingClick(btn, q, selectedIdx) {
-        if (userAnswers[q._id] !== undefined) return;
-
-        userAnswers[q._id] = selectedIdx;
-        const options = document.querySelectorAll('.option-btn');
-        
-        let isCorrect = (selectedIdx === q.answerIndex);
-        updateStats(q._id, isCorrect);
-
-        options[q.answerIndex].classList.add('correct');
-        if (!isCorrect) {
-            btn.classList.add('wrong');
-        }
-        
-        options.forEach(o => o.disabled = true);
-    }
-
-    function handleTestClick(btn, q, selectedIdx) {
-        userAnswers[q._id] = selectedIdx;
-        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-    }
-
-    function nextQuestion() {
-        if (currentIndex < currentQuestions.length - 1) {
-            currentIndex++;
-            renderCurrentQuestion();
-        } else {
-            finishSession();
-        }
-    }
-
-    function finishSession() {
-        if (currentMode === 'test') {
-            finishTest();
-        } else {
-            alert(getUIText('alertSessionEnd'));
-            goHome();
-        }
-    }
-
-    // --- TEST LOGIC ---
-    function startTimer() {
-        timeRemaining = 60 * 60; 
-        updateTimerDisplay();
-        testTimer = setInterval(() => {
-            timeRemaining--;
-            updateTimerDisplay();
-            if (timeRemaining <= 0) finishTest();
-        }, 1000);
-    }
-
-    function updateTimerDisplay() {
-        const m = Math.floor(timeRemaining / 60);
-        const s = timeRemaining % 60;
-        document.getElementById('timer-text').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-    }
-
-    function finishTest() {
-        clearInterval(testTimer);
-        let correctCount = 0;
-        
-        currentQuestions.forEach(q => {
-            const selected = userAnswers[q._id];
-            const isCorrect = (selected === q.answerIndex);
-            
-            if (isCorrect) correctCount++;
-            if (selected !== undefined) updateStats(q._id, isCorrect);
-        });
-
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('result-view').classList.add('active');
-        document.getElementById('btn-next').style.display = 'none';
-
-        const scoreEl = document.getElementById('final-score');
-        const msgEl = document.getElementById('final-message');
-        const t = uiTranslations[currentLanguage];
-
-        scoreEl.innerText = `${correctCount} / 33`;
-        if (correctCount >= 17) {
-            scoreEl.className = 'result-score pass';
-            msgEl.innerText = `${t.pass} (>= 17)`;
-        } else {
-            scoreEl.className = 'result-score fail';
-            msgEl.innerText = t.fail;
-        }
-    }
-
-    // --- STATS SYSTEM ---
-    function getStats() {
-        const s = localStorage.getItem(STATS_KEY);
-        return s ? JSON.parse(s) : {};
-    }
-
-    function updateStats(questionId, isCorrect) {
-        const stats = getStats();
-        if (!stats[questionId]) stats[questionId] = { c: 0, w: 0 };
-        
-        if (isCorrect) stats[questionId].c++;
-        else stats[questionId].w++;
-        
-        localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-    }
-
-    function resetStats() {
-        if(confirm(getUIText('alertReset'))) {
-            localStorage.removeItem(STATS_KEY);
-            alert("Reset done.");
-        }
-    }
-
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-</script>
-</body>
+    <script src="scripts/general.js"></script>
+  </body>
 </html>
