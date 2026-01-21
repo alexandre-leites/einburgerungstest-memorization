@@ -60,6 +60,31 @@
       introTitle: "Dein Self-learning für den Einbürgerungstest",
       introText:
         "Wähle einen Modus im Menü. Fragen werden zufällig gemischt. Die Position der richtigen Antwort bleibt immer gleich (1–4).",
+      homeWhatYouGetTitle: "Was du hier bekommst",
+      homeWhatYouGetText:
+        "Sprachen (DE/EN/PT), Wort-Menü (Definition/Beispiele oder ins Wörterbuch), persönliche Statistiken (richtig/falsch/übersprungen) und mehrere Lernmodi.",
+      homeModesTitle: "Modi",
+      homeModeMemTitle: "Memorieren",
+      homeModeMemText: "Nur die richtige Antwort wird angezeigt (Position bleibt gleich).",
+      homeModeTrainTitle: "Training",
+      homeModeTrainText: "Mit Feedback (grün/rot) und Wiederholungen: schwere Fragen kommen öfter zurück.",
+      homeModeTestTitle: "Test",
+      homeModeTestText: "33 Fragen (30 Deutschland + 3 Bundesland), 60 Minuten, Ergebnis erst am Ende.",
+      homeModeReviewTitle: "Wiederholen",
+      homeModeReviewText: "Zeigt dir die Fragen, die du am häufigsten falsch machst oder überspringst.",
+      startMode: "Iniciar",
+      hideTip: "Nicht mehr anzeigen",
+      tipMemorizationTitle: "Memorieren",
+      tipMemorizationText:
+        "Du siehst nur die richtige Antwort. Die anderen Positionen werden als „------“ angezeigt, damit du dir die Position merkst.",
+      tipTrainingTitle: "Training",
+      tipTrainingText:
+        "Tippe eine Option an, um sofort Feedback zu bekommen. In dieser Sitzung kommen Fragen, die du oft falsch beantwortest, häufiger zurück.",
+      tipTestTitle: "Test",
+      tipTestText:
+        "33 Fragen in 60 Minuten. Ergebnis erst am Ende. Nicht beantwortete Fragen zählen als übersprungen.",
+      tipReviewTitle: "Wiederholen",
+      tipReviewText: "Hier siehst du deine schwierigsten Fragen (falsch und übersprungen) und kannst gezielt üben.",
       testRulesTitle: "Test-Regeln",
       testRulesText:
         "Während des Tests erhältst du 33 Fragen. Du hast 60 Minuten Zeit. Für jede Frage wählst du die richtige Antwort aus vier Möglichkeiten. Wenn du mindestens 17 Fragen richtig beantwortest, bestehst du.",
@@ -148,6 +173,31 @@
       introTitle: "Your self-learning for the Einbürgerungstest",
       introText:
         "Pick a mode in the menu. Questions are shuffled. The position of the correct answer stays the same (1–4).",
+      homeWhatYouGetTitle: "What you get",
+      homeWhatYouGetText:
+        "Languages (DE/EN/PT), word context menu (definition/examples or add to dictionary), personal stats (right/wrong/skipped) and multiple learning modes.",
+      homeModesTitle: "Modes",
+      homeModeMemTitle: "Memorization",
+      homeModeMemText: "Shows only the correct answer (position stays the same).",
+      homeModeTrainTitle: "Training",
+      homeModeTrainText: "Instant feedback (green/red) and repetitions: harder questions come back more often.",
+      homeModeTestTitle: "Test",
+      homeModeTestText: "33 questions (30 Germany + 3 state), 60 minutes, result only at the end.",
+      homeModeReviewTitle: "Review",
+      homeModeReviewText: "Shows questions you most often get wrong or skip.",
+      startMode: "Start",
+      hideTip: "Don’t show again",
+      tipMemorizationTitle: "Memorization",
+      tipMemorizationText:
+        "You only see the correct answer. Other positions show “------” so you can memorize the answer position.",
+      tipTrainingTitle: "Training",
+      tipTrainingText:
+        "Tap an option to get instant feedback. In this session, questions you miss often come back more frequently.",
+      tipTestTitle: "Test",
+      tipTestText:
+        "33 questions in 60 minutes. Result only at the end. Unanswered questions count as skipped.",
+      tipReviewTitle: "Review",
+      tipReviewText: "See your hardest questions (wrong and skipped) and practice them again.",
       testRulesTitle: "Test rules",
       testRulesText:
         "During the test, you will receive 33 questions. You have 60 minutes to answer them. For each question, you must choose the correct answer from four possible answers. If you answer at least 17 questions correctly, you will pass the test.",
@@ -235,6 +285,31 @@
       introTitle: "Seu self-learning para o Einbürgerungstest",
       introText:
         "Escolha um modo no menu. As perguntas são embaralhadas. A posição da resposta correta sempre fica igual (1–4).",
+      homeWhatYouGetTitle: "O que você tem aqui",
+      homeWhatYouGetText:
+        "Idiomas (DE/EN/PT), menu de palavra (definição/exemplos ou adicionar ao dicionário), estatísticas pessoais (acertos/erros/puladas) e vários modos de estudo.",
+      homeModesTitle: "Modos",
+      homeModeMemTitle: "Memorização",
+      homeModeMemText: "Mostra apenas a resposta correta (a posição continua a mesma).",
+      homeModeTrainTitle: "Treino",
+      homeModeTrainText: "Feedback imediato (verde/vermelho) e repetições: as mais difíceis voltam mais.",
+      homeModeTestTitle: "Teste",
+      homeModeTestText: "33 questões (30 Alemanha + 3 estado), 60 minutos, resultado só no final.",
+      homeModeReviewTitle: "Revisão",
+      homeModeReviewText: "Mostra as questões que você mais erra ou mais pula.",
+      startMode: "Iniciar",
+      hideTip: "Não mostrar novamente",
+      tipMemorizationTitle: "Memorização",
+      tipMemorizationText:
+        "Você vê apenas a resposta correta. As outras posições aparecem como “------” para memorizar a posição da resposta.",
+      tipTrainingTitle: "Treino",
+      tipTrainingText:
+        "Toque em uma alternativa para ver o feedback na hora. Nesta sessão, as questões que você erra mais voltam com mais frequência.",
+      tipTestTitle: "Teste",
+      tipTestText:
+        "33 questões em 60 minutos. Resultado só no final. Questões não respondidas contam como puladas.",
+      tipReviewTitle: "Revisão",
+      tipReviewText: "Veja as questões mais difíceis (erradas e puladas) e pratique novamente.",
       testRulesTitle: "Regras do teste",
       testRulesText:
         "During the test, you will receive a booklet containing 33 questions. You have 60 minutes to answer them. For each question, you must choose the correct answer from four possible answers. If you answer at least 17 questions correctly, you will pass the test.",
@@ -282,7 +357,9 @@
   const state = {
     questions: [],
     questionsById: new Map(),
-    baseDictionary: {},
+    baseDictionary: {}, // entries only (lemma -> {de,en,pt})
+    baseDictionaryAliases: {}, // form -> lemma
+    baseDictionaryIndex: new Map(), // canonical form -> lemma
     lang: APP.defaultLang,
     selectedState: APP.defaultState,
     route: "home",
@@ -378,8 +455,10 @@
     const w = normalizeWord(word);
     if (!w) return null;
     const canon = w.toLowerCase();
-    if (state.baseDictionary[canon]) return { key: canon, entry: state.baseDictionary[canon] };
-    return null;
+    const lemma = state.baseDictionaryIndex.get(canon) ?? canon;
+    const entry = state.baseDictionary[lemma];
+    if (!entry) return null;
+    return { key: lemma, entry };
   }
 
   function escapeRegExp(str) {
@@ -1009,28 +1088,28 @@
     intro.innerHTML = `
       <div class="card__title">${t("introTitle")}</div>
       <div class="muted">${t("introText")}</div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn btn--primary" type="button" data-go="mode/train">${t("training")}</button>
-        <button class="btn" type="button" data-go="mode/memorization/random">${t("memorization")}</button>
-        <button class="btn" type="button" data-go="mode/test">${t("test")}</button>
-      </div>
     `;
 
-    const testInfo = document.createElement("div");
-    testInfo.className = "card";
-    testInfo.innerHTML = `
-      <div class="card__title">${t("testRulesTitle")}</div>
+    const info = document.createElement("div");
+    info.className = "card";
+    info.innerHTML = `
+      <div class="card__title">${t("homeWhatYouGetTitle")}</div>
+      <div class="muted">${t("homeWhatYouGetText")}</div>
+      <div class="card__title" style="margin-top:14px">${t("homeModesTitle")}</div>
+      <div class="stack">
+        <div><strong>${t("homeModeMemTitle")}</strong><div class="muted">${t("homeModeMemText")}</div></div>
+        <div><strong>${t("homeModeTrainTitle")}</strong><div class="muted">${t("homeModeTrainText")}</div></div>
+        <div><strong>${t("homeModeTestTitle")}</strong><div class="muted">${t("homeModeTestText")}</div></div>
+        <div><strong>${t("homeModeReviewTitle")}</strong><div class="muted">${t("homeModeReviewText")}</div></div>
+      </div>
+      <div class="card__title" style="margin-top:14px">${t("testRulesTitle")}</div>
       <div class="muted">${t("testRulesText")}</div>
       <div class="muted" style="margin-top:10px">${t("testComposition")}</div>
     `;
 
     grid.appendChild(intro);
-    grid.appendChild(testInfo);
+    grid.appendChild(info);
     els.main.appendChild(grid);
-
-    els.main.querySelectorAll("[data-go]").forEach((b) => {
-      b.addEventListener("click", () => setRoute(b.getAttribute("data-go")));
-    });
 
     setFooterButtons({
       backDisabled: true,
@@ -1048,6 +1127,54 @@
   function setFooterVisible(visible) {
     if (!els.pageFooter) return;
     els.pageFooter.hidden = !visible;
+  }
+
+  function tipStorageKey(id) {
+    return key(`ui.dismissTip.${id}`);
+  }
+
+  function isTipDismissed(id) {
+    return !!readJSON(tipStorageKey(id), false);
+  }
+
+  function dismissTip(id) {
+    writeJSON(tipStorageKey(id), true);
+  }
+
+  function renderTip(id, title, text) {
+    if (isTipDismissed(id)) return null;
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.boxShadow = "none";
+    const header = document.createElement("div");
+    header.className = "row";
+    header.style.justifyContent = "space-between";
+    header.style.alignItems = "flex-start";
+    header.style.gap = "12px";
+
+    const left = document.createElement("div");
+    const tEl = document.createElement("div");
+    tEl.className = "card__title";
+    tEl.textContent = title;
+    const bEl = document.createElement("div");
+    bEl.className = "muted";
+    bEl.textContent = text;
+    left.appendChild(tEl);
+    left.appendChild(bEl);
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn--ghost";
+    close.textContent = t("hideTip");
+    close.addEventListener("click", () => {
+      dismissTip(id);
+      card.remove();
+    });
+
+    header.appendChild(left);
+    header.appendChild(close);
+    card.appendChild(header);
+    return card;
   }
 
   function renderMemorization() {
@@ -1072,6 +1199,8 @@
     const showTranslation = state.lang !== "de";
 
     els.main.innerHTML = "";
+    const tip = renderTip("memorization", t("tipMemorizationTitle"), t("tipMemorizationText"));
+    if (tip) els.main.appendChild(tip);
 
     if (orderMode === "ordered") {
       const controls = document.createElement("div");
@@ -1156,6 +1285,8 @@
     const locked = !!feedback;
 
     els.main.innerHTML = "";
+    const tip = renderTip("training", t("tipTrainingTitle"), t("tipTrainingText"));
+    if (tip) els.main.appendChild(tip);
     els.main.appendChild(
       renderQuestionCard(q, {
         mode: "train",
@@ -1214,6 +1345,8 @@
     const showTranslation = state.lang !== "de";
 
     els.main.innerHTML = "";
+    const tip = renderTip("test", t("tipTestTitle"), t("tipTestText"));
+    if (tip) els.main.appendChild(tip);
     const card = renderQuestionCard(q, {
       mode: "test",
       showOnlyCorrect: false,
@@ -1377,7 +1510,10 @@
 
     const rows = getStatsRows();
     if (!rows.length) {
-      els.main.innerHTML = `<div class="card"><div class="card__title">${t("review")}</div><div class="muted">${t(
+      els.main.innerHTML = "";
+      const tip = renderTip("review", t("tipReviewTitle"), t("tipReviewText"));
+      if (tip) els.main.appendChild(tip);
+      els.main.innerHTML += `<div class="card"><div class="card__title">${t("review")}</div><div class="muted">${t(
         "noStatsYet",
       )}</div></div>`;
       setFooterButtons({ backDisabled: true, nextDisabled: true, homeDisabled: false });
@@ -1388,6 +1524,8 @@
     const top = rows.slice(0, 30);
 
     els.main.innerHTML = "";
+    const tip = renderTip("review", t("tipReviewTitle"), t("tipReviewText"));
+    if (tip) els.main.appendChild(tip);
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `<div class="card__title">${t("review")}</div><div class="muted">${t(
@@ -1680,11 +1818,12 @@
     const display = normalizeWord(wordRaw);
     const canon = canonicalWordKey(wordRaw);
     if (!display || !canon) return;
-    state.currentWord = canon;
+    const resolved = findBaseDictionaryEntry(display);
+    state.currentWord = resolved?.key ?? canon; // store lemma as key when possible
     state.currentWordDisplay = display;
 
     setText(els.wordCtxViewBtn, t("viewDefinition"));
-    const saved = myDictHas(canon);
+    const saved = myDictHas(state.currentWord);
     setText(els.wordCtxToggleBtn, saved ? t("removeFromMyDictionary") : t("addToMyDictionary"));
 
     positionContextMenu(point.x, point.y);
@@ -1694,14 +1833,16 @@
     const word = normalizeWord(wordRaw);
     const canon = canonicalWordKey(wordRaw);
     if (!word || !canon) return;
-    state.currentWord = canon;
+    const resolved = findBaseDictionaryEntry(word);
+    state.currentWord = resolved?.key ?? canon; // lemma when possible
     state.currentWordDisplay = word;
 
-    setText(els.wordModalTitle, `${t("word")}: ${word}`);
+    const titleSuffix = resolved && resolved.key !== canon ? ` (${resolved.key})` : "";
+    setText(els.wordModalTitle, `${t("word")}: ${word}${titleSuffix}`);
     setText(els.wordModalSubtitle, state.lang === "de" ? "DE → EN/PT" : `${state.lang.toUpperCase()} (UI)`);
     setText(els.wordBaseTitle, t("baseDictionary"));
 
-    const base = findBaseDictionaryEntry(word);
+    const base = resolved ?? findBaseDictionaryEntry(word);
     els.wordBaseContent.innerHTML = "";
     if (!base) {
       const p = document.createElement("div");
@@ -2135,9 +2276,29 @@
       state.questionsById = new Map(questions.map((q) => [q._id, q]));
 
       if (dRes.ok) {
-        state.baseDictionary = await dRes.json();
+        const rawDict = await dRes.json();
+        // Support format:
+        // - { "aliases": {form: lemma}, "<lemma>": {de/en/pt...}, ... }
+        // - or legacy: { "<lemma>": {de/en/pt...}, ... }
+        const aliases = rawDict?.aliases && typeof rawDict.aliases === "object" ? rawDict.aliases : {};
+        const entries = { ...rawDict };
+        delete entries.aliases;
+        state.baseDictionary = entries;
+        state.baseDictionaryAliases = aliases;
+
+        const index = new Map();
+        Object.keys(entries).forEach((lemma) => index.set(String(lemma).toLowerCase(), String(lemma).toLowerCase()));
+        Object.keys(aliases).forEach((form) => {
+          const lemma = String(aliases[form] ?? "").toLowerCase();
+          if (!lemma) return;
+          if (!entries[lemma]) return;
+          index.set(String(form).toLowerCase(), lemma);
+        });
+        state.baseDictionaryIndex = index;
       } else {
         state.baseDictionary = {};
+        state.baseDictionaryAliases = {};
+        state.baseDictionaryIndex = new Map();
       }
     } catch (err) {
       console.error(err);

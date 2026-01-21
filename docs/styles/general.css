@@ -249,6 +249,10 @@ select.field__control option { background: var(--panel); color: var(--text); }
   padding: 18px 16px 100px;
 }
 
+.main > * + * {
+  margin-top: 14px;
+}
+
 .footer {
   position: sticky;
   bottom: 0;
