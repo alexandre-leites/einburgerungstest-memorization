@@ -1850,45 +1850,99 @@
       p.textContent = t("notInBaseDictionary");
       els.wordBaseContent.appendChild(p);
     } else {
-      const block = (langKey, label) => {
+      const langs = [
+        { key: "de", label: "DE" },
+        { key: "en", label: "EN" },
+        { key: "pt", label: "PT" },
+      ];
+
+      const defaultTab = state.lang === "pt" ? "pt" : state.lang === "en" ? "en" : "de";
+      const tabIdPrefix = `wordTab-${Date.now()}`;
+
+      const tabs = document.createElement("div");
+      tabs.className = "tabs";
+      tabs.setAttribute("role", "tablist");
+
+      const panelsWrap = document.createElement("div");
+
+      const setActive = (activeKey) => {
+        langs.forEach((l) => {
+          const btn = tabs.querySelector(`[data-tab="${l.key}"]`);
+          const panel = panelsWrap.querySelector(`[data-panel="${l.key}"]`);
+          if (!btn || !panel) return;
+          const isActive = l.key === activeKey;
+          btn.setAttribute("aria-selected", String(isActive));
+          btn.tabIndex = isActive ? 0 : -1;
+          panel.hidden = !isActive;
+        });
+      };
+
+      const renderPanel = (langKey) => {
         const entry = base.entry?.[langKey];
-        const wrap = document.createElement("div");
-        wrap.className = "card";
-        wrap.style.boxShadow = "none";
-        wrap.innerHTML = `<div class="card__title">${label}</div>`;
+        const panel = document.createElement("div");
+        panel.className = "tab-panel";
+        panel.dataset.panel = langKey;
+        panel.setAttribute("role", "tabpanel");
+        panel.id = `${tabIdPrefix}-panel-${langKey}`;
+        panel.hidden = true;
+
         if (!entry) {
           const p = document.createElement("div");
           p.className = "muted";
           p.textContent = t("notInBaseDictionary");
-          wrap.appendChild(p);
-          return wrap;
+          panel.appendChild(p);
+          return panel;
         }
+
         const desc = document.createElement("div");
         desc.className = "muted";
         const descText = String(entry.description ?? "").trim();
         desc.textContent = descText ? descText : t("noDefinition");
-        wrap.appendChild(desc);
+        panel.appendChild(desc);
+
         if (Array.isArray(entry.phrases) && entry.phrases.length) {
           const ul = document.createElement("div");
           ul.className = "stack";
-          ul.style.marginTop = "10px";
-          const highlightTarget =
-            langKey === "de"
-              ? word
-              : String(entry.description ?? "").trim();
-          entry.phrases.slice(0, 3).forEach((ph) => {
+          const highlightTarget = langKey === "de" ? word : String(entry.description ?? "").trim();
+          entry.phrases.slice(0, 6).forEach((ph) => {
             const item = document.createElement("div");
             item.innerHTML = `• ${highlightWord(ph, highlightTarget)}`;
             ul.appendChild(item);
           });
-          wrap.appendChild(ul);
+          panel.appendChild(ul);
         }
-        return wrap;
+        return panel;
       };
 
-      els.wordBaseContent.appendChild(block("de", "DE"));
-      els.wordBaseContent.appendChild(block("en", "EN"));
-      els.wordBaseContent.appendChild(block("pt", "PT (Brasil)"));
+      langs.forEach((l, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tab";
+        btn.dataset.tab = l.key;
+        btn.id = `${tabIdPrefix}-tab-${l.key}`;
+        btn.setAttribute("role", "tab");
+        btn.setAttribute("aria-controls", `${tabIdPrefix}-panel-${l.key}`);
+        btn.setAttribute("aria-selected", "false");
+        btn.tabIndex = -1;
+        btn.textContent = l.label;
+        btn.addEventListener("click", () => setActive(l.key));
+        btn.addEventListener("keydown", (ev) => {
+          if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+          ev.preventDefault();
+          const next = ev.key === "ArrowRight" ? idx + 1 : idx - 1;
+          const wrapped = (next + langs.length) % langs.length;
+          const nextKey = langs[wrapped].key;
+          setActive(nextKey);
+          const nextBtn = tabs.querySelector(`[data-tab="${nextKey}"]`);
+          nextBtn?.focus();
+        });
+        tabs.appendChild(btn);
+        panelsWrap.appendChild(renderPanel(l.key));
+      });
+
+      els.wordBaseContent.appendChild(tabs);
+      els.wordBaseContent.appendChild(panelsWrap);
+      setActive(defaultTab);
     }
 
     openModal("wordModal");
