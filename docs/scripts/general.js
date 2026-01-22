@@ -103,6 +103,17 @@
       accuracy: "Genauigkeit",
       noStatsYet: "Noch keine Statistiken. Beantworte ein paar Fragen im Training oder im Test.",
       sortBy: "Sortieren nach",
+      yourAnswer: "Deine Antwort",
+      correctAnswer: "Richtige Antwort",
+      result: "Ergebnis",
+      testDetails: "Test-Details",
+      questionReview: "Fragenübersicht",
+      totalTests: "Gesamte Tests",
+      averageScore: "Durchschnittliche Punktzahl",
+      passRate: "Bestehensquote",
+      testHistory: "Test-Verlauf",
+      date: "Datum",
+      score: "Punktzahl",
       mostWrong: "Meiste Fehler",
       mostCorrect: "Meiste Treffer",
       mostSkipped: "Meist übersprungen",
@@ -215,6 +226,17 @@
       accuracy: "Accuracy",
       noStatsYet: "No stats yet. Answer a few questions in Training or Test.",
       sortBy: "Sort by",
+      yourAnswer: "Your answer",
+      correctAnswer: "Correct answer",
+      result: "Result",
+      testDetails: "Test details",
+      questionReview: "Question review",
+      totalTests: "Total tests",
+      averageScore: "Average score",
+      passRate: "Pass rate",
+      testHistory: "Test history",
+      date: "Date",
+      score: "Score",
       mostWrong: "Most wrong",
       mostCorrect: "Most correct",
       mostSkipped: "Most skipped",
@@ -327,6 +349,17 @@
       accuracy: "Precisão",
       noStatsYet: "Sem estatísticas ainda. Responda algumas questões no Treino ou no Teste.",
       sortBy: "Ordenar por",
+      yourAnswer: "Sua resposta",
+      correctAnswer: "Resposta correta",
+      result: "Resultado",
+      testDetails: "Detalhes do teste",
+      questionReview: "Revisão das questões",
+      totalTests: "Total de testes",
+      averageScore: "Pontuação média",
+      passRate: "Taxa de aprovação",
+      testHistory: "Histórico de testes",
+      date: "Data",
+      score: "Pontuação",
       mostWrong: "Mais erradas",
       mostCorrect: "Mais acertadas",
       mostSkipped: "Mais puladas",
@@ -1081,7 +1114,7 @@
     els.main.innerHTML = "";
 
     const grid = document.createElement("div");
-    grid.className = "grid grid--2";
+    grid.className = "grid";
 
     const intro = document.createElement("div");
     intro.className = "card";
@@ -1388,6 +1421,22 @@
     });
   }
 
+  function saveTestHistory(testSession) {
+    const history = readJSON(key("testHistory"), []);
+    const testRecord = {
+      timestamp: testSession.finishedAtMs || Date.now(),
+      state: testSession.state,
+      score: testSession.score,
+      passed: (testSession.score?.correct ?? 0) >= 17,
+      questionIds: testSession.questionIds,
+      answers: testSession.answers,
+    };
+    history.push(testRecord);
+    // Keep last 50 tests only
+    if (history.length > 50) history.shift();
+    writeJSON(key("testHistory"), history);
+  }
+
   function finishTest(auto) {
     stopTestTicker();
     const session = loadSession("test");
@@ -1424,6 +1473,9 @@
         statsBump(qid, !!isCorrect);
       });
 
+      // Save test to history
+      saveTestHistory(s);
+
       renderTestResults();
     };
 
@@ -1433,6 +1485,321 @@
     }
 
     confirmDialog(t("finishTestConfirm"), finalize);
+  }
+
+  function renderTestHistoryView() {
+    setActiveNav("stats");
+    const testRecord = readJSON(key("viewingTestHistory"), null);
+    
+    if (!testRecord) {
+      setRoute("stats");
+      return;
+    }
+    
+    setTimerVisible(false);
+    setFooterVisible(true);
+    els.main.innerHTML = "";
+    
+    const date = new Date(testRecord.timestamp);
+    const dateStr = date.toLocaleDateString(state.lang === "de" ? "de-DE" : state.lang === "pt" ? "pt-BR" : "en-US");
+    const timeStr = date.toLocaleTimeString(state.lang === "de" ? "de-DE" : state.lang === "pt" ? "pt-BR" : "en-US", { 
+      hour: "2-digit", 
+      minute: "2-digit" 
+    });
+    
+    const score = testRecord.score?.correct ?? 0;
+    const wrong = testRecord.score?.wrong ?? 0;
+    const pct = Math.round((score / APP.testTotal) * 100);
+    const passed = testRecord.passed;
+    
+    setTopbar(t("testDetails"), `${dateStr} ${timeStr}`);
+    setProgress(0, 0);
+    
+    // Use EXACTLY the same structure as renderTestResults()
+    const title = document.createElement("div");
+    title.className = "card";
+    const passLabel = passed ? t("pass") : t("fail");
+    const resultBadgeStyle = passed 
+      ? "background:#10b981;color:#fff;padding:10px 20px;border-radius:8px;font-weight:600;font-size:1.2em;display:inline-block" 
+      : "background:#ef4444;color:#fff;padding:10px 20px;border-radius:8px;font-weight:600;font-size:1.2em;display:inline-block";
+    
+    title.innerHTML = `
+      <div style="text-align:center">
+        <div class="card__title">${t("testFinished")}</div>
+        <div style="margin-top:14px">
+          <span style="${resultBadgeStyle}">
+            ${passed ? "✓" : "✗"} ${passLabel}
+          </span>
+        </div>
+        <div class="row" style="margin-top:14px;justify-content:center">
+          <div class="pill"><span class="pill__label">${t("correct")}</span><span class="pill__value mono">${score}</span></div>
+          <div class="pill"><span class="pill__label">${t("wrong")}</span><span class="pill__value mono">${wrong}</span></div>
+          <div class="pill"><span class="pill__label">${t("accuracy")}</span><span class="pill__value mono">${pct}%</span></div>
+        </div>
+        <div class="row" style="margin-top:14px;justify-content:center">
+          <button class="btn" type="button" id="backToStatsBtn">${t("statistics")}</button>
+        </div>
+      </div>
+    `;
+    title.querySelector("#backToStatsBtn").addEventListener("click", () => setRoute("stats"));
+    
+    els.main.appendChild(title);
+    
+    // Add detailed question review table - SAME as renderTestResults()
+    if (testRecord.questionIds && testRecord.questionIds.length > 0) {
+      const reviewCard = document.createElement("div");
+      reviewCard.className = "card";
+      reviewCard.innerHTML = `<div class="card__title">${t("questionReview")}</div>`;
+      
+      const table = document.createElement("table");
+      table.className = "table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>${t("question")}</th>
+            <th>${t("yourAnswer")}</th>
+            <th>${t("correctAnswer")}</th>
+            <th>${t("result")}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      
+      const tbody = table.querySelector("tbody");
+      
+      // Get answer text: always show German, with translation below if needed
+      const getAnswerTextWithTranslation = (q, optionIndex) => {
+        const germanText = q.options[optionIndex];
+        let html = germanText;
+        
+        if (state.lang !== "de") {
+          let translation = "";
+          if (state.lang === "en" && q.options_en?.[optionIndex]) {
+            translation = q.options_en[optionIndex];
+          } else if (state.lang === "pt" && q.options_pt?.[optionIndex]) {
+            translation = q.options_pt[optionIndex];
+          }
+          
+          if (translation && translation !== germanText) {
+            html += `<div class="muted" style="margin-top:4px;font-size:0.9em">${translation}</div>`;
+          }
+        }
+        
+        return `<div style="max-width:400px">${html}</div>`;
+      };
+      
+      testRecord.questionIds.forEach((qid) => {
+        const q = getQuestionById(qid);
+        if (!q) return;
+        
+        const questionNumber = qid.split("-")[1] || qid;
+        const chosen = testRecord.answers?.[qid];
+        const isCorrect = typeof chosen === "number" && chosen === q.answerIndex;
+        const wasSkipped = typeof chosen !== "number";
+        
+        const yourAnswerText = wasSkipped 
+          ? `<span class="muted">—</span>` 
+          : getAnswerTextWithTranslation(q, chosen);
+        
+        const correctAnswerText = getAnswerTextWithTranslation(q, q.answerIndex);
+        
+        let resultBadge = "";
+        if (wasSkipped) {
+          resultBadge = `<span class="muted">${t("skipped")}</span>`;
+        } else if (isCorrect) {
+          resultBadge = `<span style="color:#10b981">✓ ${t("correct")}</span>`;
+        } else {
+          resultBadge = `<span style="color:#ef4444">✗ ${t("wrong")}</span>`;
+        }
+        
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>
+            <button class="btn btn--ghost" style="padding:4px 8px" type="button" data-view-history-question="${qid}" data-chosen="${chosen ?? ''}">
+              <span class="mono">${questionNumber}</span>
+            </button>
+            <div class="muted" style="margin-top:4px">${q.category}</div>
+          </td>
+          <td>${yourAnswerText}</td>
+          <td>${correctAnswerText}</td>
+          <td>${resultBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      
+      reviewCard.appendChild(table);
+      
+      // Add click event listeners to question buttons in THIS card
+      reviewCard.querySelectorAll("[data-view-history-question]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const qid = btn.getAttribute("data-view-history-question");
+          const chosenStr = btn.getAttribute("data-chosen");
+          const chosen = chosenStr === "" ? undefined : parseInt(chosenStr, 10);
+          const question = getQuestionById(qid);
+          openQuestionReviewModal(question, chosen);
+        });
+      });
+      
+      els.main.appendChild(reviewCard);
+    }
+    
+    setFooterButtons({
+      backDisabled: false,
+      nextDisabled: true,
+      homeDisabled: false,
+    });
+  }
+
+  function openQuestionReviewModal(question, chosenIndex) {
+    if (!question) {
+      console.error("openQuestionReviewModal: question is null");
+      return;
+    }
+    
+    // Remove existing modal if any
+    const existing = document.getElementById("questionReviewModal");
+    if (existing) existing.remove();
+    
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    modal.style.display = "grid";
+    modal.id = "questionReviewModal";
+    modal.setAttribute("role", "dialog");
+    modal.setAttribute("aria-modal", "true");
+    
+    const wasSkipped = typeof chosenIndex !== "number";
+    const isCorrect = !wasSkipped && chosenIndex === question.answerIndex;
+    
+    const showTranslation = state.lang !== "de";
+    
+    // Build question display
+    const questionNumber = question._id.split("-")[1] || question._id;
+    
+    // Create modal structure
+    const backdrop = document.createElement("div");
+    backdrop.className = "modal__backdrop";
+    
+    const panel = document.createElement("div");
+    panel.className = "modal__panel";
+    panel.style.maxWidth = "800px";
+    
+    const header = document.createElement("div");
+    header.className = "modal__header";
+    header.innerHTML = `
+      <div>
+        <div class="modal__title">${t("question")} ${questionNumber}</div>
+        <div class="modal__subtitle">${question.category}</div>
+      </div>
+      <button class="icon-btn" type="button" data-close-modal="questionReviewModal" aria-label="Close">✕</button>
+    `;
+    
+    const content = document.createElement("div");
+    content.className = "modal__content";
+    
+    const card = document.createElement("div");
+    card.className = "card";
+    
+    // Question text
+    const questionTextDiv = document.createElement("div");
+    questionTextDiv.className = "question__text";
+    questionTextDiv.textContent = question.question?.text ?? "";
+    
+    if (showTranslation) {
+      const translation = getQuestionTranslation(question);
+      if (translation) {
+        const trDiv = document.createElement("div");
+        trDiv.className = "muted";
+        trDiv.style.marginTop = "8px";
+        trDiv.textContent = translation;
+        questionTextDiv.appendChild(trDiv);
+      }
+    }
+    
+    card.appendChild(questionTextDiv);
+    
+    // Image if exists
+    if (question.question?.image) {
+      const img = document.createElement("img");
+      img.className = "question__image";
+      img.src = question.question.image;
+      img.alt = question._id;
+      img.loading = "lazy";
+      img.style.marginTop = "12px";
+      img.style.maxWidth = "100%";
+      img.style.borderRadius = "8px";
+      card.appendChild(img);
+    }
+    
+    // Options
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "options";
+    optionsDiv.style.marginTop = "16px";
+    
+    const labels = ["1", "2", "3", "4"];
+    question.options.forEach((optText, idx) => {
+      const isChosen = !wasSkipped && chosenIndex === idx;
+      const isCorrectOption = idx === question.answerIndex;
+      
+      const optionDiv = document.createElement("div");
+      optionDiv.className = "option is-disabled";
+      optionDiv.setAttribute("aria-disabled", "true");
+      
+      if (isCorrectOption) {
+        optionDiv.classList.add("option--correct");
+      } else if (isChosen && !isCorrect) {
+        optionDiv.classList.add("option--wrong");
+      }
+      
+      const topDiv = document.createElement("div");
+      topDiv.className = "option__top";
+      
+      const badge = document.createElement("div");
+      badge.className = "option__badge";
+      badge.textContent = labels[idx];
+      
+      const text = document.createElement("div");
+      text.className = "option__text";
+      text.textContent = optText;
+      
+      if (showTranslation) {
+        const optTr = getOptionTranslation(question, idx);
+        if (optTr && optTr !== optText) {
+          const trDiv = document.createElement("div");
+          trDiv.className = "muted";
+          trDiv.style.marginTop = "4px";
+          trDiv.style.fontSize = "0.9em";
+          trDiv.textContent = optTr;
+          text.appendChild(trDiv);
+        }
+      }
+      
+      topDiv.appendChild(badge);
+      topDiv.appendChild(text);
+      optionDiv.appendChild(topDiv);
+      optionsDiv.appendChild(optionDiv);
+    });
+    
+    card.appendChild(optionsDiv);
+    content.appendChild(card);
+    panel.appendChild(header);
+    panel.appendChild(content);
+    modal.appendChild(backdrop);
+    modal.appendChild(panel);
+    
+    document.body.appendChild(modal);
+    
+    // Add close event listeners
+    backdrop.addEventListener("click", () => modal.remove());
+    header.querySelector("[data-close-modal]").addEventListener("click", () => modal.remove());
+    
+    // Close on Escape key
+    const escHandler = (ev) => {
+      if (ev.key === "Escape") {
+        modal.remove();
+        document.removeEventListener("keydown", escHandler);
+      }
+    };
+    document.addEventListener("keydown", escHandler);
   }
 
   function renderTestResults() {
@@ -1448,17 +1815,27 @@
     const passed = score.correct >= 17;
     const pct = Math.round((score.correct / APP.testTotal) * 100);
     const passLabel = passed ? t("pass") : t("fail");
+    const resultBadgeStyle = passed 
+      ? "background:#10b981;color:#fff;padding:10px 20px;border-radius:8px;font-weight:600;font-size:1.2em;display:inline-block" 
+      : "background:#ef4444;color:#fff;padding:10px 20px;border-radius:8px;font-weight:600;font-size:1.2em;display:inline-block";
+    
     title.innerHTML = `
-      <div class="card__title">${t("testFinished")}</div>
-      <div class="row" style="margin-top:8px">
-        <div class="pill"><span class="pill__label">${t("correct")}</span><span class="pill__value mono">${score.correct}</span></div>
-        <div class="pill"><span class="pill__label">${t("wrong")}</span><span class="pill__value mono">${score.wrong}</span></div>
-        <div class="pill"><span class="pill__label">${t("accuracy")}</span><span class="pill__value mono">${pct}%</span></div>
-      </div>
-      <div class="muted" style="margin-top:10px">${passLabel} (${passed ? ">=17" : "<17"})</div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn btn--primary" type="button" id="newTestBtn">${t("newTest")}</button>
-        <button class="btn" type="button" id="goStatsBtn">${t("statistics")}</button>
+      <div style="text-align:center">
+        <div class="card__title">${t("testFinished")}</div>
+        <div style="margin-top:14px">
+          <span style="${resultBadgeStyle}">
+            ${passed ? "✓" : "✗"} ${passLabel}
+          </span>
+        </div>
+        <div class="row" style="margin-top:14px;justify-content:center">
+          <div class="pill"><span class="pill__label">${t("correct")}</span><span class="pill__value mono">${score.correct}</span></div>
+          <div class="pill"><span class="pill__label">${t("wrong")}</span><span class="pill__value mono">${score.wrong}</span></div>
+          <div class="pill"><span class="pill__label">${t("accuracy")}</span><span class="pill__value mono">${pct}%</span></div>
+        </div>
+        <div class="row" style="margin-top:14px;justify-content:center">
+          <button class="btn btn--primary" type="button" id="newTestBtn">${t("newTest")}</button>
+          <button class="btn" type="button" id="goStatsBtn">${t("statistics")}</button>
+        </div>
       </div>
     `;
     title.querySelector("#newTestBtn").addEventListener("click", () => {
@@ -1470,6 +1847,105 @@
     title.querySelector("#goStatsBtn").addEventListener("click", () => setRoute("stats"));
 
     els.main.appendChild(title);
+
+    // Add detailed question review table
+    if (s && s.questionIds && s.questionIds.length > 0) {
+      const reviewCard = document.createElement("div");
+      reviewCard.className = "card";
+      reviewCard.innerHTML = `<div class="card__title">${t("questionReview")}</div>`;
+
+      const table = document.createElement("table");
+      table.className = "table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>${t("question")}</th>
+            <th>${t("yourAnswer")}</th>
+            <th>${t("correctAnswer")}</th>
+            <th>${t("result")}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector("tbody");
+      s.questionIds.forEach((qid) => {
+        const q = getQuestionById(qid);
+        if (!q) return;
+
+        const chosen = s.answers?.[qid];
+        const isCorrect = typeof chosen === "number" && chosen === q.answerIndex;
+        const wasSkipped = typeof chosen !== "number";
+
+        // Extract question number from ID (frage-200 -> 200)
+        const questionNumber = qid.split("-")[1] || qid;
+
+        // Get answer text: always show German, with translation below if needed
+        const getAnswerTextWithTranslation = (optionIndex) => {
+          const germanText = q.options[optionIndex];
+          let html = germanText;
+          
+          if (state.lang !== "de") {
+            let translation = "";
+            if (state.lang === "en" && q.options_en?.[optionIndex]) {
+              translation = q.options_en[optionIndex];
+            } else if (state.lang === "pt" && q.options_pt?.[optionIndex]) {
+              translation = q.options_pt[optionIndex];
+            }
+            
+            if (translation && translation !== germanText) {
+              html += `<div class="muted" style="margin-top:4px;font-size:0.9em">${translation}</div>`;
+            }
+          }
+          
+          return `<div style="max-width:400px">${html}</div>`;
+        };
+
+        const yourAnswerText = wasSkipped 
+          ? `<span class="muted">—</span>` 
+          : getAnswerTextWithTranslation(chosen);
+        
+        const correctAnswerText = getAnswerTextWithTranslation(q.answerIndex);
+        
+        let resultBadge = "";
+        if (wasSkipped) {
+          resultBadge = `<span class="muted">${t("skipped")}</span>`;
+        } else if (isCorrect) {
+          resultBadge = `<span style="color:#10b981">✓ ${t("correct")}</span>`;
+        } else {
+          resultBadge = `<span style="color:#ef4444">✗ ${t("wrong")}</span>`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>
+            <button class="btn btn--ghost" style="padding:4px 8px" type="button" data-view-question="${qid}">
+              <span class="mono">${questionNumber}</span>
+            </button>
+            <div class="muted" style="margin-top:4px">${q.category}</div>
+          </td>
+          <td>${yourAnswerText}</td>
+          <td>${correctAnswerText}</td>
+          <td>${resultBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      reviewCard.appendChild(table);
+      
+      // Add click event listeners to view question buttons in THIS card
+      reviewCard.querySelectorAll("[data-view-question]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const qid = btn.getAttribute("data-view-question");
+          const question = getQuestionById(qid);
+          const chosen = s.answers?.[qid];
+          openQuestionReviewModal(question, chosen);
+        });
+      });
+      
+      els.main.appendChild(reviewCard);
+    }
+
     setTopbar(t("test"), s?.state ? `${s.state}` : "");
     setProgress(0, 0);
 
@@ -1483,7 +1959,8 @@
   function getStatsRows() {
     const all = statsReadAll();
     const rows = [];
-    getPracticeQuestions().forEach((q) => {
+    // Get ALL questions (not just current state)
+    state.questions.forEach((q) => {
       const stat = all[q._id];
       if (!stat) return;
       const total = (stat.correct ?? 0) + (stat.wrong ?? 0);
@@ -1499,6 +1976,22 @@
       });
     });
     return rows;
+  }
+
+  function getTestHistoryStats() {
+    const history = readJSON(key("testHistory"), []);
+    if (!history.length) return null;
+
+    const totalTests = history.length;
+    const totalCorrect = history.reduce((sum, test) => sum + (test.score?.correct ?? 0), 0);
+    const passedTests = history.filter(test => test.passed).length;
+    
+    return {
+      totalTests,
+      averageScore: totalTests > 0 ? (totalCorrect / totalTests).toFixed(1) : 0,
+      passRate: totalTests > 0 ? Math.round((passedTests / totalTests) * 100) : 0,
+      history: history.slice().reverse(), // Most recent first
+    };
   }
 
   function renderReview() {
@@ -1548,9 +2041,12 @@
     `;
     const tbody = table.querySelector("tbody");
     top.forEach((r) => {
+      // Extract question number from ID (frage-200 -> 200)
+      const questionNumber = r.id.split("-")[1] || r.id;
+      
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><span class="mono">${r.id}</span><div class="muted" style="margin-top:4px">${r.category}</div></td>
+        <td><span class="mono">${questionNumber}</span><div class="muted" style="margin-top:4px">${r.category}</div></td>
         <td class="mono">${r.attempts}</td>
         <td class="mono">${r.wrong}</td>
         <td class="mono">${Math.round(r.accuracy * 100)}%</td>
@@ -1585,11 +2081,90 @@
     setFooterVisible(true);
     setProgress(0, 0);
 
+    els.main.innerHTML = "";
+
+    // Show test history statistics first
+    const testStats = getTestHistoryStats();
+    if (testStats) {
+      const summaryCard = document.createElement("div");
+      summaryCard.className = "card";
+      summaryCard.innerHTML = `
+        <div class="card__title">${t("testHistory")}</div>
+        <div class="row" style="margin-top:8px">
+          <div class="pill"><span class="pill__label">${t("totalTests")}</span><span class="pill__value mono">${testStats.totalTests}</span></div>
+          <div class="pill"><span class="pill__label">${t("averageScore")}</span><span class="pill__value mono">${testStats.averageScore}/${APP.testTotal}</span></div>
+          <div class="pill"><span class="pill__label">${t("passRate")}</span><span class="pill__value mono">${testStats.passRate}%</span></div>
+        </div>
+      `;
+
+      // Add recent tests table
+      if (testStats.history.length > 0) {
+        const historyTable = document.createElement("table");
+        historyTable.className = "table";
+        historyTable.style.marginTop = "14px";
+        historyTable.innerHTML = `
+          <thead>
+            <tr>
+              <th>${t("date")}</th>
+              <th>${t("score")}</th>
+              <th>${t("accuracy")}</th>
+              <th>${t("result")}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const historyTbody = historyTable.querySelector("tbody");
+        testStats.history.slice(0, 10).forEach((test, idx) => {
+          const date = new Date(test.timestamp);
+          const dateStr = date.toLocaleDateString(state.lang === "de" ? "de-DE" : state.lang === "pt" ? "pt-BR" : "en-US");
+          const timeStr = date.toLocaleTimeString(state.lang === "de" ? "de-DE" : state.lang === "pt" ? "pt-BR" : "en-US", { 
+            hour: "2-digit", 
+            minute: "2-digit" 
+          });
+          const score = test.score?.correct ?? 0;
+          const wrong = test.score?.wrong ?? 0;
+          const pct = Math.round((score / APP.testTotal) * 100);
+          const resultBadge = test.passed 
+            ? `<span style="color:#10b981">✓ ${t("pass")}</span>`
+            : `<span style="color:#ef4444">✗ ${t("fail")}</span>`;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><span class="mono">${dateStr}</span><div class="muted" style="margin-top:4px">${timeStr}</div></td>
+            <td class="mono">${score}/${APP.testTotal}</td>
+            <td class="mono">${pct}%</td>
+            <td>${resultBadge}</td>
+            <td><button class="btn btn--ghost" type="button" data-view-test="${idx}">👁️</button></td>
+          `;
+          historyTbody.appendChild(tr);
+        });
+
+        summaryCard.appendChild(historyTable);
+        
+        // Add click event listeners to view test buttons
+        summaryCard.querySelectorAll("[data-view-test]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const testIndex = parseInt(btn.getAttribute("data-view-test"), 10);
+            const test = testStats.history[testIndex];
+            // Save to temporary storage and navigate to view
+            writeJSON(key("viewingTestHistory"), test);
+            setRoute("test-history-view");
+          });
+        });
+      }
+
+      els.main.appendChild(summaryCard);
+    }
+
+    // Show per-question statistics
     const rows = getStatsRows();
     if (!rows.length) {
-      els.main.innerHTML = `<div class="card"><div class="card__title">${t("statistics")}</div><div class="muted">${t(
-        "noStatsYet",
-      )}</div></div>`;
+      const noStatsCard = document.createElement("div");
+      noStatsCard.className = "card";
+      noStatsCard.innerHTML = `<div class="card__title">${t("statistics")}</div><div class="muted">${t("noStatsYet")}</div>`;
+      els.main.appendChild(noStatsCard);
       setFooterButtons({ backDisabled: true, nextDisabled: true, homeDisabled: false });
       return;
     }
@@ -1604,14 +2179,13 @@
     };
     sortRows(sort);
 
-    els.main.innerHTML = "";
     const card = document.createElement("div");
     card.className = "card";
 
     const sortSelectId = "statsSort";
     card.innerHTML = `
       <div class="row">
-        <div class="card__title">${t("statistics")}</div>
+        <div class="card__title">${t("statistics")} • ${t("question")}</div>
         <div style="flex:1"></div>
         <label class="field" style="min-width:240px;margin:0" for="${sortSelectId}">
           <span class="field__label">${t("sortBy")}</span>
@@ -1643,9 +2217,12 @@
     `;
     const tbody = table.querySelector("tbody");
     rows.forEach((r) => {
+      // Extract question number from ID (frage-200 -> 200)
+      const questionNumber = r.id.split("-")[1] || r.id;
+      
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><span class="mono">${r.id}</span><div class="muted" style="margin-top:4px">${r.category}</div></td>
+        <td><span class="mono">${questionNumber}</span><div class="muted" style="margin-top:4px">${r.category}</div></td>
         <td class="mono">${r.attempts}</td>
         <td class="mono">${r.correct}</td>
         <td class="mono">${r.wrong}</td>
@@ -1969,6 +2546,7 @@
     }
     if (route === "mode/review") return renderReview();
     if (route === "stats") return renderStats();
+    if (route === "test-history-view") return renderTestHistoryView();
     if (route === "dictionary") return renderDictionary();
 
     return renderHome();
@@ -2093,7 +2671,7 @@
         if (!delLang && k === key("lang")) return;
         if (!delState && k === key("selectedState")) return;
 
-        if (delStats && (k === key("statsById") || k === key("stats.sort"))) {
+        if (delStats && (k === key("statsById") || k === key("stats.sort") || k === key("testHistory"))) {
           localStorage.removeItem(k);
           return;
         }
@@ -2128,6 +2706,9 @@
 
     els.backBtn.addEventListener("click", () => {
       const r = state.route;
+      if (r === "test-history-view") {
+        return setRoute("stats");
+      }
       if (r === "mode/memorization/random" || r === "mode/memorization/ordered") {
         const orderMode = r === "mode/memorization/ordered" ? "ordered" : "random";
         const modeKey = orderMode === "ordered" ? "memorization.ordered" : "memorization.random";
@@ -2198,6 +2779,11 @@
           if (currentQid && !hasAnswer && !s.skipped[currentQid]) {
             statsBumpSkip(currentQid);
             s.skipped[currentQid] = true;
+          }
+          
+          // If on last question, finish test instead of moving forward
+          if (s.index === s.questionIds.length - 1) {
+            return finishTest(false);
           }
         }
         if (s && s.index < s.questionIds.length - 1) {
