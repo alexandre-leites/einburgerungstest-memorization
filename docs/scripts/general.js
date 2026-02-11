@@ -126,6 +126,9 @@
       skipped: "Übersprungen",
       accuracy: "Genauigkeit",
       noStatsYet: "Noch keine Statistiken. Beantworte ein paar Fragen im Training oder im Test.",
+      statsByTopic: "Statistiken nach Thema",
+      topic: "Thema",
+      stateTopicLabel: "Bundesland",
       sortBy: "Sortieren nach",
       yourAnswer: "Deine Antwort",
       correctAnswer: "Richtige Antwort",
@@ -264,6 +267,9 @@
       skipped: "Skipped",
       accuracy: "Accuracy",
       noStatsYet: "No stats yet. Answer a few questions in Training or Test.",
+      statsByTopic: "Statistics by topic",
+      topic: "Topic",
+      stateTopicLabel: "State",
       sortBy: "Sort by",
       yourAnswer: "Your answer",
       correctAnswer: "Correct answer",
@@ -402,6 +408,9 @@
       skipped: "Puladas",
       accuracy: "Precisão",
       noStatsYet: "Sem estatísticas ainda. Responda algumas questões no Treino ou no Teste.",
+      statsByTopic: "Estatísticas por tema",
+      topic: "Tema",
+      stateTopicLabel: "Estado",
       sortBy: "Ordenar por",
       yourAnswer: "Sua resposta",
       correctAnswer: "Resposta correta",
@@ -2064,7 +2073,6 @@
   function getStatsRows() {
     const all = statsReadAll();
     const rows = [];
-    // Get ALL questions (not just current state)
     state.questions.forEach((q) => {
       const stat = all[q._id];
       if (!stat) return;
@@ -2073,6 +2081,7 @@
       rows.push({
         id: q._id,
         category: q.category,
+        sub_category: q.sub_category ?? null,
         correct: stat.correct ?? 0,
         wrong: stat.wrong ?? 0,
         skipped: stat.skipped ?? 0,
@@ -2081,6 +2090,46 @@
       });
     });
     return rows;
+  }
+
+  function getStatsByTopic() {
+    const rows = getStatsRows();
+    const byTopic = new Map();
+    rows.forEach((r) => {
+      const topicKey = r.sub_category || "STATE";
+      const agg = byTopic.get(topicKey) ?? {
+        topicKey,
+        correct: 0,
+        wrong: 0,
+        skipped: 0,
+        attempts: 0,
+      };
+      agg.correct += r.correct;
+      agg.wrong += r.wrong;
+      agg.skipped += r.skipped;
+      agg.attempts += r.attempts;
+      byTopic.set(topicKey, agg);
+    });
+    return Array.from(byTopic.entries())
+      .map(([topicKey, agg]) => {
+        const total = agg.correct + agg.wrong;
+        const accuracy = total > 0 ? agg.correct / total : 0;
+        const label =
+          topicKey === "STATE"
+            ? t("stateTopicLabel")
+            : getSubCategoryLabel(topicKey);
+        return {
+          topicKey,
+          topicLabel: label,
+          correct: agg.correct,
+          wrong: agg.wrong,
+          skipped: agg.skipped,
+          attempts: agg.attempts,
+          accuracy,
+        };
+      })
+      .filter((t) => t.attempts > 0)
+      .sort((a, b) => b.wrong - a.wrong);
   }
 
   function getTestHistoryStats() {
@@ -2272,6 +2321,40 @@
       els.main.appendChild(noStatsCard);
       setFooterButtons({ backDisabled: true, nextDisabled: true, homeDisabled: false });
       return;
+    }
+
+    const byTopic = getStatsByTopic();
+    if (byTopic.length > 0) {
+      const topicCard = document.createElement("div");
+      topicCard.className = "card";
+      topicCard.innerHTML = `<div class="card__title">${t("statsByTopic")}</div>`;
+      const topicTable = document.createElement("table");
+      topicTable.className = "table";
+      topicTable.style.marginTop = "10px";
+      topicTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>${t("topic")}</th>
+            <th>${t("correct")}</th>
+            <th>${t("wrong")}</th>
+            <th>${t("accuracy")}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const topicTbody = topicTable.querySelector("tbody");
+      byTopic.forEach((row) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.topicLabel}</td>
+          <td class="mono">${row.correct}</td>
+          <td class="mono">${row.wrong}</td>
+          <td class="mono">${Math.round(row.accuracy * 100)}%</td>
+        `;
+        topicTbody.appendChild(tr);
+      });
+      topicCard.appendChild(topicTable);
+      els.main.appendChild(topicCard);
     }
 
     const sort = readJSON(key("stats.sort"), "mostWrong");
